@@ -1,0 +1,575 @@
+{
+  "_meta": {
+    "description": "Starter knowledge base for CDSS Phase 2. Medicine entries (name, dosage form, strength) are taken directly from the WHO Model List of Essential Medicines, 24th List (2025), which was adopted in full as Pakistan's National Essential Medicines List (NEML) per Gazette Notification F.No.8-43/2021-DD(PS), dated 20 October 2025, Ministry of National Health Services, Regulations and Coordination. Because Pakistan adopted the WHO 24th list verbatim, the same entries serve as both Tier1 (WHO) and Tier2 (PNF/DRAP NDL / NEML) citations for now. Posology (adult dosing/frequency/duration) reflects standard clinical practice and is marked Tier4 (hospital protocol) until replaced with PNF-specific posology tables. Every medicine listed here MUST still be checked against the live DRAP National Drug List for registration status before being shown to a physician (see citation_validator.py).",
+    "tier_definitions": {
+      "1": "WHO Model List of Essential Medicines, 24th List (2025)",
+      "2": "Pakistan NEML 2025 (= WHO 24th list, adopted verbatim, Gazette 20-Oct-2025) / PNF / DRAP NDL",
+      "3": "Peer-reviewed literature (incl. JPMA) - not yet populated in Phase 2 starter KB",
+      "4": "Hospital protocol / standard clinical posology - placeholder, requires hospital sign-off"
+    },
+    "version": "phase2-starter-v1"
+  },
+  "conditions": [
+    {
+      "condition_id": "HTN",
+      "condition_name": "Essential (primary) hypertension",
+      "icd10": "I10",
+      "differentials": [
+        {"name": "Secondary hypertension (renal/endocrine)", "icd10": "I15.9"},
+        {"name": "White coat hypertension", "icd10": "R03.0"}
+      ],
+      "key_vitals_pattern": "Elevated BP (>=140/90 mmHg) on repeated measurement, otherwise stable vitals.",
+      "treatment_plan": {
+        "non_pharmacological": "Dietary sodium reduction, weight management, regular physical activity, smoking cessation, alcohol moderation. Lifestyle measures should be first-line for stage 1 hypertension without comorbidities.",
+        "medicines": [
+          {
+            "name": "amlodipine",
+            "dosage_form": "Tablet 5 mg (as maleate, mesylate or besylate)",
+            "dose_instruction": "5 mg orally once daily; may increase to 10 mg once daily if BP not controlled after 2-4 weeks.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 12.3 Antihypertensive medicines, p.40"
+          },
+          {
+            "name": "enalapril",
+            "dosage_form": "Tablet 2.5 mg / 5 mg / 10 mg (as hydrogen maleate)",
+            "dose_instruction": "5 mg orally once or twice daily; titrate up to 20 mg/day in 1-2 divided doses as tolerated. Monitor renal function and potassium.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 12.3 Antihypertensive medicines, p.40"
+          },
+          {
+            "name": "hydrochlorothiazide",
+            "dosage_form": "Solid oral dosage form 12.5 mg / 25 mg",
+            "dose_instruction": "12.5-25 mg orally once daily in the morning.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 12.3 Antihypertensive medicines, p.40"
+          },
+          {
+            "name": "losartan",
+            "dosage_form": "Tablet 25 mg / 50 mg / 100 mg",
+            "dose_instruction": "50 mg orally once daily; may increase to 100 mg once daily. Alternative for patients intolerant of ACE inhibitors (e.g., cough).",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 12.3 Antihypertensive medicines, p.41"
+          }
+        ]
+      },
+      "confidence_notes": "Diagnosis of hypertension requires confirmation on at least two separate readings; a single elevated BP reading should not by itself trigger medicine recommendations above the 60% confidence band."
+    },
+
+    {
+      "condition_id": "T2DM",
+      "condition_name": "Type 2 diabetes mellitus",
+      "icd10": "E11",
+      "differentials": [
+        {"name": "Type 1 diabetes mellitus", "icd10": "E10"},
+        {"name": "Impaired fasting glucose / prediabetes", "icd10": "R73.0"}
+      ],
+      "key_vitals_pattern": "Fasting blood sugar >=126 mg/dL or random/casual blood sugar >=200 mg/dL with symptoms (polyuria, polydipsia, weight loss).",
+      "treatment_plan": {
+        "non_pharmacological": "Dietary counselling (carbohydrate-controlled diet), structured physical activity, weight reduction if overweight/obese, diabetes self-management education.",
+        "medicines": [
+          {
+            "name": "metformin",
+            "dosage_form": "Tablet 500 mg (hydrochloride)",
+            "dose_instruction": "500 mg orally once or twice daily with meals; titrate gradually up to 2000 mg/day in divided doses as tolerated (GI side effects). First-line for T2DM.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 18.5.2 Hypoglycaemic agents, p.49"
+          },
+          {
+            "name": "gliclazide",
+            "dosage_form": "Solid oral dosage form (controlled-release) 30 mg / 60 mg / 80 mg",
+            "dose_instruction": "30-60 mg orally once daily with breakfast; max 120 mg/day. Add if metformin alone insufficient, or if metformin contraindicated.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 18.5.2 Hypoglycaemic agents, p.49"
+          },
+          {
+            "name": "insulin (human, intermediate-acting)",
+            "dosage_form": "Injection suspension 40 IU/mL or 100 IU/mL (isophane/NPH)",
+            "dose_instruction": "Start 0.2 IU/kg/day subcutaneously, adjust per glucose monitoring. Reserve for patients not controlled on oral agents, or with severe hyperglycaemia at presentation.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 18.5.1 Insulins, p.49"
+          }
+        ]
+      },
+      "confidence_notes": "A single random blood sugar reading is suggestive but not diagnostic of T2DM; confirmatory testing (fasting glucose / HbA1c on a separate occasion) is required before starting pharmacotherapy in a non-emergency setting."
+    },
+
+    {
+      "condition_id": "MALARIA_PF",
+      "condition_name": "Malaria, Plasmodium falciparum (uncomplicated)",
+      "icd10": "B50.9",
+      "differentials": [
+        {"name": "Malaria, Plasmodium vivax", "icd10": "B51.9"},
+        {"name": "Typhoid fever", "icd10": "A01.0"},
+        {"name": "Dengue fever", "icd10": "A90"}
+      ],
+      "key_vitals_pattern": "Fever (often cyclical/intermittent), chills, sweating, headache; may have mild tachycardia. Endemic-area exposure history important.",
+      "treatment_plan": {
+        "non_pharmacological": "Antipyretics for fever, oral rehydration. Confirm with blood film / RDT before treatment where possible.",
+        "medicines": [
+          {
+            "name": "artemether + lumefantrine",
+            "dosage_form": "Tablet 20 mg + 120 mg",
+            "dose_instruction": "Adult (>=35 kg): 4 tablets at 0, 8, 24, 36, 48 and 60 hours (total 6 doses over 3 days), taken with fatty food/milk to aid absorption. First-line for uncomplicated P. falciparum malaria per WHO treatment guidelines.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.5.3.1 Antimalarial medicines - curative treatment, p.24"
+          },
+          {
+            "name": "primaquine",
+            "dosage_form": "Tablet 7.5 mg / 15 mg (as phosphate)",
+            "dose_instruction": "Single low dose (0.25 mg/kg base) to reduce P. falciparum transmission, given alongside ACT, where G6PD status allows. Do NOT use for radical cure dosing without G6PD testing.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.5.3.1 Antimalarial medicines - curative treatment, p.24"
+          }
+        ]
+      },
+      "confidence_notes": "Confirmation by microscopy or rapid diagnostic test (RDT) is strongly recommended before initiating antimalarial treatment; a presumptive diagnosis based on fever alone should not exceed the 60-80% confidence band."
+    },
+
+    {
+      "condition_id": "TYPHOID",
+      "condition_name": "Typhoid fever (enteric fever)",
+      "icd10": "A01.0",
+      "differentials": [
+        {"name": "Malaria", "icd10": "B54"},
+        {"name": "Dengue fever", "icd10": "A90"},
+        {"name": "Urinary tract infection / pyelonephritis", "icd10": "N39.0"}
+      ],
+      "key_vitals_pattern": "Sustained/step-ladder fever often >38.5C for several days, relative bradycardia, abdominal discomfort, headache, malaise.",
+      "treatment_plan": {
+        "non_pharmacological": "Oral rehydration, antipyretics (paracetamol), monitor for complications (GI bleeding, perforation) - especially if abdominal pain worsens or fever persists beyond 5-7 days of treatment.",
+        "medicines": [
+          {
+            "name": "azithromycin",
+            "dosage_form": "Solid oral dosage form 250 mg / 500 mg",
+            "dose_instruction": "Adult: 1 g orally on day 1, then 500 mg once daily for a total of 5-7 days for uncomplicated enteric fever (per WHO Watch-group listing for enteric fever).",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.2.2 Watch group antibiotics - azithromycin (Enteric fever, first choice), p.20"
+          },
+          {
+            "name": "ceftriaxone",
+            "dosage_form": "Powder for injection 1 g / 2 g (as sodium)",
+            "dose_instruction": "Adult: 2 g IV once daily for 7-14 days for severe/complicated enteric fever or when oral therapy not tolerated. Inpatient use.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.2.2 Watch group antibiotics - ceftriaxone (Enteric fever, first choice), p.21"
+          },
+          {
+            "name": "ciprofloxacin",
+            "dosage_form": "Solid oral dosage form 250 mg / 500 mg (as hydrochloride)",
+            "dose_instruction": "500 mg orally twice daily for 7-10 days. NOTE: fluoroquinolone resistance in S. Typhi is common in Pakistan - use only if local susceptibility data supports it, or as second-line.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.2.2 Watch group antibiotics - ciprofloxacin (Enteric fever, first choice), p.21"
+          }
+        ]
+      },
+      "confidence_notes": "Blood culture is the diagnostic gold standard; widal test is unreliable in endemic areas. Antibiotic choice should consider local resistance patterns (XDR typhoid is documented in parts of Pakistan, notably Sindh)."
+    },
+
+    {
+      "condition_id": "URI_PHARYNGITIS",
+      "condition_name": "Acute upper respiratory infection / pharyngitis",
+      "icd10": "J06.9",
+      "differentials": [
+        {"name": "Streptococcal pharyngitis", "icd10": "J02.0"},
+        {"name": "Acute tonsillitis", "icd10": "J03.9"},
+        {"name": "Common cold (viral)", "icd10": "J00"}
+      ],
+      "key_vitals_pattern": "Mild fever, sore throat, normal or mildly elevated pulse; vitals generally stable.",
+      "treatment_plan": {
+        "non_pharmacological": "Most URIs are viral and self-limiting: rest, fluids, paracetamol for fever/pain, warm saline gargles. Antibiotics should be reserved for likely bacterial pharyngitis (e.g., Centor criteria suggestive of GAS).",
+        "medicines": [
+          {
+            "name": "paracetamol (acetaminophen)",
+            "dosage_form": "Tablet 500 mg",
+            "dose_instruction": "500-1000 mg orally every 6-8 hours as needed for fever/pain, max 4 g/day in adults.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 2.1 Non-opioids and NSAIMs, p.2"
+          },
+          {
+            "name": "phenoxymethylpenicillin",
+            "dosage_form": "Solid oral dosage form 250 mg / 500 mg (as potassium)",
+            "dose_instruction": "500 mg orally four times daily for 10 days, IF bacterial (streptococcal) pharyngitis is clinically suspected (e.g., high Centor score, no cough, tonsillar exudate, fever, tender anterior cervical nodes).",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.2.1 Access group antibiotics - phenoxymethylpenicillin (Pharyngitis, first choice), p.19"
+          },
+          {
+            "name": "amoxicillin",
+            "dosage_form": "Solid oral dosage form 250 mg / 500 mg (as trihydrate)",
+            "dose_instruction": "500 mg orally three times daily for 10 days as an alternative for suspected bacterial pharyngitis.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.2.1 Access group antibiotics - amoxicillin (Pharyngitis, second choice), p.16"
+          }
+        ]
+      },
+      "confidence_notes": "Antibiotics should be WITHHELD for clinically viral presentations even if confidence in the overall diagnosis is high; the citation validator should flag antibiotic entries here for physician review of bacterial-vs-viral likelihood."
+    },
+
+    {
+      "condition_id": "CAP",
+      "condition_name": "Community-acquired pneumonia",
+      "icd10": "J18.9",
+      "differentials": [
+        {"name": "Acute bronchitis", "icd10": "J20.9"},
+        {"name": "Pulmonary tuberculosis", "icd10": "A15.0"},
+        {"name": "COVID-19 / viral pneumonitis", "icd10": "U07.1"}
+      ],
+      "key_vitals_pattern": "Fever, raised pulse/respiratory rate, possible hypoxia (not captured in current vitals set), cough, pleuritic chest pain.",
+      "treatment_plan": {
+        "non_pharmacological": "Oxygen if hypoxic (refer if SpO2 cannot be assessed locally and patient looks unwell), hydration, antipyretics, chest physiotherapy as appropriate.",
+        "medicines": [
+          {
+            "name": "amoxicillin",
+            "dosage_form": "Solid oral dosage form 250 mg / 500 mg / 1 g (as trihydrate)",
+            "dose_instruction": "1 g orally three times daily for 5-7 days for mild-to-moderate CAP managed as outpatient.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.2.1 Access group antibiotics - amoxicillin (Community acquired pneumonia, mild to moderate - first choice), p.16"
+          },
+          {
+            "name": "benzylpenicillin",
+            "dosage_form": "Powder for injection 600 mg (1 million IU) / 3 g (5 million IU)",
+            "dose_instruction": "Adult: 1-2 million IU IV/IM every 6 hours for severe CAP requiring admission; step down to oral therapy once clinically improving.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.2.1 Access group antibiotics - benzylpenicillin (Community acquired pneumonia, severe - first choice), p.17"
+          },
+          {
+            "name": "ceftriaxone",
+            "dosage_form": "Powder for injection 1 g / 2 g (as sodium)",
+            "dose_instruction": "1-2 g IV once daily for severe CAP, especially if atypical pathogens or treatment failure on penicillin is suspected.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.2.2 Watch group antibiotics - ceftriaxone (Community acquired pneumonia, severe - first choice), p.21"
+          },
+          {
+            "name": "clarithromycin",
+            "dosage_form": "Solid oral dosage form 250 mg / 500 mg",
+            "dose_instruction": "500 mg orally twice daily for 5-7 days, added for atypical cover in severe CAP or used alone in penicillin-allergic patients with mild CAP.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.2.2 Watch group antibiotics - clarithromycin (Community acquired pneumonia, severe - first choice), p.21"
+          }
+        ]
+      },
+      "confidence_notes": "Severity assessment (e.g., CURB-65) should guide choice between oral outpatient therapy and injectable inpatient therapy; this KB does not compute severity scores in Phase 2."
+    },
+
+    {
+      "condition_id": "GASTROENTERITIS",
+      "condition_name": "Acute gastroenteritis / acute diarrhoea",
+      "icd10": "A09",
+      "differentials": [
+        {"name": "Acute invasive bacterial diarrhoea / dysentery", "icd10": "A09.0"},
+        {"name": "Cholera", "icd10": "A00.9"},
+        {"name": "Typhoid fever", "icd10": "A01.0"}
+      ],
+      "key_vitals_pattern": "May have tachycardia and/or hypotension if dehydrated; low-grade fever common with infectious causes.",
+      "treatment_plan": {
+        "non_pharmacological": "Oral rehydration is the cornerstone of management for all acute diarrhoea regardless of cause. Continue feeding (in children). Assess hydration status carefully.",
+        "medicines": [
+          {
+            "name": "oral rehydration salts",
+            "dosage_form": "Powder for dilution in 200 mL / 500 mL / 1 L (low-osmolarity formula)",
+            "dose_instruction": "Reconstitute per sachet instructions; give frequent small sips, replacing ongoing losses (approx. 10 mL/kg per loose stool for children; ad-lib for adults guided by thirst and urine output).",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 17.5.1 Oral rehydration, p.48"
+          },
+          {
+            "name": "zinc sulfate",
+            "dosage_form": "Tablet (dispersible, scored) 20 mg",
+            "dose_instruction": "20 mg orally once daily for 10-14 days as an adjunct to ORS in acute diarrhoea (evidence strongest in children; widely used as adjunct).",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 17.5.2 Medicines for diarrhoea, p.48"
+          },
+          {
+            "name": "ciprofloxacin",
+            "dosage_form": "Solid oral dosage form 250 mg / 500 mg (as hydrochloride)",
+            "dose_instruction": "500 mg orally twice daily for 3 days, ONLY if features of invasive bacterial diarrhoea/dysentery (blood in stool, high fever, severe abdominal pain) are present - not for simple watery diarrhoea.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.2.2 Watch group antibiotics - ciprofloxacin (Acute invasive bacterial diarrhoea/dysentery, second choice), p.21"
+          }
+        ]
+      },
+      "confidence_notes": "Antibiotics are NOT indicated for most acute watery diarrhoea; the citation validator should treat ciprofloxacin here as conditional on dysentery features being documented in the chief complaint."
+    },
+
+    {
+      "condition_id": "IDA",
+      "condition_name": "Iron-deficiency anaemia",
+      "icd10": "D50.9",
+      "differentials": [
+        {"name": "Anaemia of chronic disease", "icd10": "D63.8"},
+        {"name": "Thalassaemia trait", "icd10": "D56.9"}
+      ],
+      "key_vitals_pattern": "May present with tachycardia, fatigue-related complaints; vitals otherwise often normal. Diagnosis ultimately requires lab confirmation (Hb, ferritin) not captured in current vitals set.",
+      "treatment_plan": {
+        "non_pharmacological": "Dietary counselling to increase iron-rich foods; investigate and treat underlying cause of blood loss (e.g., menorrhagia, GI bleeding) - do not treat iron deficiency as a standalone diagnosis without considering the source.",
+        "medicines": [
+          {
+            "name": "ferrous salt",
+            "dosage_form": "Tablet equivalent to 60-65 mg elemental iron",
+            "dose_instruction": "1 tablet (60-65 mg elemental iron) orally once or twice daily, ideally on an empty stomach (or with food if GI upset), for at least 3 months to replenish stores.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 10.1 Antianaemia medicines - ferrous salt, p.36"
+          },
+          {
+            "name": "folic acid",
+            "dosage_form": "Tablet 1 mg / 5 mg",
+            "dose_instruction": "1-5 mg orally once daily, often combined with iron therapy, especially in pregnancy or suspected combined deficiency.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 10.1 Antianaemia medicines - folic acid, p.36"
+          }
+        ]
+      },
+      "confidence_notes": "This KB entry should generally NOT be reached with confidence above 60% from vitals + chief complaint alone, since confirmatory CBC is required; intended primarily as a differential placeholder."
+    },
+
+    {
+      "condition_id": "UTI_LOWER",
+      "condition_name": "Lower urinary tract infection (cystitis)",
+      "icd10": "N30.0",
+      "differentials": [
+        {"name": "Pyelonephritis", "icd10": "N10"},
+        {"name": "Vaginitis", "icd10": "N76.0"}
+      ],
+      "key_vitals_pattern": "Often normal vitals; fever and flank pain would suggest pyelonephritis instead (more severe, different treatment tier).",
+      "treatment_plan": {
+        "non_pharmacological": "Increase oral fluid intake; urinalysis/urine culture recommended before or alongside starting antibiotics where feasible.",
+        "medicines": [
+          {
+            "name": "nitrofurantoin",
+            "dosage_form": "Solid oral dosage form 50 mg / 100 mg",
+            "dose_instruction": "100 mg orally twice daily for 5 days for uncomplicated lower UTI in non-pregnant adult women. Avoid if eGFR < 30 mL/min or near term in pregnancy.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.2.1 Access group antibiotics - nitrofurantoin (Lower urinary tract infections, first choice), p.19"
+          },
+          {
+            "name": "sulfamethoxazole + trimethoprim",
+            "dosage_form": "Tablet 400 mg + 80 mg",
+            "dose_instruction": "1 tablet (800/160 mg) orally twice daily for 3 days for uncomplicated lower UTI, if local resistance is low.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.2.1 Access group antibiotics - sulfamethoxazole+trimethoprim (Lower urinary tract infections, first choice), p.19"
+          },
+          {
+            "name": "trimethoprim",
+            "dosage_form": "Tablet 100 mg / 200 mg",
+            "dose_instruction": "200 mg orally twice daily for 3 days as an alternative first-line agent for uncomplicated lower UTI.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.2.1 Access group antibiotics - trimethoprim (Lower urinary tract infections, first choice), p.20"
+          }
+        ]
+      },
+      "confidence_notes": "If fever, flank pain, or systemic symptoms (e.g., temperature >=38C, vomiting) are present, this should be treated as possible pyelonephritis (more severe pathway, parenteral options), not simple cystitis."
+    },
+
+    {
+      "condition_id": "ASTHMA",
+      "condition_name": "Asthma (acute exacerbation / chronic management)",
+      "icd10": "J45.9",
+      "differentials": [
+        {"name": "Chronic obstructive pulmonary disease", "icd10": "J44.9"},
+        {"name": "Acute bronchitis", "icd10": "J20.9"}
+      ],
+      "key_vitals_pattern": "May show tachycardia and tachypnoea (not directly captured) during exacerbation; chief complaint typically includes wheeze, breathlessness, cough, chest tightness.",
+      "treatment_plan": {
+        "non_pharmacological": "Identify and avoid triggers (allergens, smoke, occupational exposures). Provide an asthma action plan and inhaler technique education.",
+        "medicines": [
+          {
+            "name": "salbutamol",
+            "dosage_form": "Solution for inhalation 100 micrograms per actuation (pressurized metered-dose inhaler)",
+            "dose_instruction": "2 puffs (200 micrograms) via inhaler as needed for acute symptoms, up to every 4 hours; for acute exacerbation give via nebulizer/spacer with higher frequency under supervision.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 25.1 Antiasthmatic medicines - salbutamol, p.59"
+          },
+          {
+            "name": "budesonide",
+            "dosage_form": "Powder for inhalation 100 / 200 micrograms per actuation",
+            "dose_instruction": "200-400 micrograms twice daily via dry powder inhaler for maintenance therapy in persistent asthma (inhaled corticosteroid).",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 25.1 Antiasthmatic medicines - budesonide, p.59"
+          },
+          {
+            "name": "budesonide + formoterol",
+            "dosage_form": "Powder for inhalation 100 micrograms + 6 micrograms per actuation",
+            "dose_instruction": "1-2 inhalations twice daily for maintenance (and reliever, per MART regimens) in moderate-to-severe persistent asthma.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 25.1 Antiasthmatic medicines - budesonide+formoterol, p.59"
+          }
+        ]
+      },
+      "confidence_notes": "Severe acute exacerbation (inability to speak full sentences, accessory muscle use, SpO2 low) should trigger urgent referral regardless of AI confidence - current vitals set does not capture respiratory rate or SpO2, which are important limitations to document."
+    },
+
+    {
+      "condition_id": "DENGUE",
+      "condition_name": "Dengue fever",
+      "icd10": "A90",
+      "differentials": [
+        {"name": "Malaria", "icd10": "B54"},
+        {"name": "Typhoid fever", "icd10": "A01.0"},
+        {"name": "Chikungunya", "icd10": "A92.0"}
+      ],
+      "key_vitals_pattern": "High fever (often >=38.5C), may have relative bradycardia or, in warning-sign cases, tachycardia with narrowing pulse pressure (early shock). Headache, retro-orbital pain, myalgia, rash.",
+      "treatment_plan": {
+        "non_pharmacological": "Oral rehydration, rest, close monitoring for warning signs (persistent vomiting, abdominal pain, bleeding, lethargy, narrowing pulse pressure) which mandate hospital admission. AVOID NSAIDs and aspirin due to bleeding risk.",
+        "medicines": [
+          {
+            "name": "paracetamol (acetaminophen)",
+            "dosage_form": "Tablet 500 mg",
+            "dose_instruction": "500-1000 mg orally every 6-8 hours as needed for fever/myalgia, max 4 g/day. Preferred antipyretic/analgesic in suspected dengue.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 2.1 Non-opioids and NSAIMs - paracetamol, p.2"
+          },
+          {
+            "name": "oral rehydration salts",
+            "dosage_form": "Powder for dilution in 200 mL / 500 mL / 1 L",
+            "dose_instruction": "Frequent oral fluids as tolerated to maintain hydration; escalate to IV fluids in hospital if warning signs develop (outside Phase-2 model scope - refer).",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 17.5.1 Oral rehydration, p.48"
+          }
+        ]
+      },
+      "confidence_notes": "This KB deliberately contains NO NSAIDs/aspirin/anticoagulants for dengue due to bleeding risk - the citation validator should hard-block ibuprofen/acetylsalicylic acid recommendations whenever dengue is in the differential list, even if another condition is the primary diagnosis."
+    },
+
+    {
+      "condition_id": "TB_PULM",
+      "condition_name": "Pulmonary tuberculosis (screening / suspected)",
+      "icd10": "A15.0",
+      "differentials": [
+        {"name": "Community-acquired pneumonia", "icd10": "J18.9"},
+        {"name": "Lung malignancy", "icd10": "C34.9"}
+      ],
+      "key_vitals_pattern": "Often low-grade fever, weight loss (low BMI), normal-to-mildly raised pulse; chief complaint typically chronic cough (>2 weeks), haemoptysis, night sweats, weight loss.",
+      "treatment_plan": {
+        "non_pharmacological": "This is a SCREENING flag, not a treatment-initiation pathway in Phase 2. Refer for sputum AFB smear/Xpert MTB-RIF testing and chest X-ray before any anti-TB therapy is started. Anti-TB treatment must be initiated and supervised under the national TB programme (DOTS) protocols, not by this CDSS.",
+        "medicines": [
+          {
+            "name": "ethambutol + isoniazid + pyrazinamide + rifampicin",
+            "dosage_form": "Tablet 275 mg + 75 mg + 400 mg + 150 mg (fixed-dose combination)",
+            "dose_instruction": "REFERENCE ONLY - dosing is weight-band based per national TB programme guidelines and must be initiated by/under the DOTS programme, not auto-prescribed by this system.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.2.5 Antituberculosis medicines - ethambutol+isoniazid+pyrazinamide+rifampicin FDC, p.18"
+          }
+        ]
+      },
+      "confidence_notes": "This entry should ALWAYS output 'refer to specialist / national TB programme' regardless of AI confidence score - the medicines list is for citation/reference completeness only and must be suppressed in the patient-facing output unless explicitly flagged as 'reference only'."
+    },
+
+    {
+      "condition_id": "PUD",
+      "condition_name": "Peptic ulcer disease / dyspepsia",
+      "icd10": "K27.9",
+      "differentials": [
+        {"name": "Gastro-oesophageal reflux disease", "icd10": "K21.9"},
+        {"name": "Gastritis", "icd10": "K29.7"}
+      ],
+      "key_vitals_pattern": "Vitals usually normal; chief complaint of epigastric pain, especially related to meals, possible nausea. Tachycardia/hypotension would suggest GI bleeding - an emergency, not routine PUD management.",
+      "treatment_plan": {
+        "non_pharmacological": "Avoid NSAIDs, reduce alcohol/smoking, smaller more frequent meals. Test for H. pylori where facilities allow before prescribing eradication therapy.",
+        "medicines": [
+          {
+            "name": "omeprazole",
+            "dosage_form": "Solid oral dosage form 10 mg / 20 mg / 40 mg",
+            "dose_instruction": "20 mg orally once daily before breakfast for 4-8 weeks for uncomplicated peptic ulcer/dyspepsia.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 17.1 Antiulcer medicines - omeprazole, p.46"
+          },
+          {
+            "name": "amoxicillin",
+            "dosage_form": "Solid oral dosage form 1 g (as trihydrate)",
+            "dose_instruction": "1 g orally twice daily for 14 days as part of H. pylori eradication triple therapy (with PPI + clarithromycin), if H. pylori confirmed.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.2.1 Access group antibiotics - amoxicillin, p.16"
+          },
+          {
+            "name": "clarithromycin",
+            "dosage_form": "Solid oral dosage form 250 mg / 500 mg",
+            "dose_instruction": "500 mg orally twice daily for 14 days as part of H. pylori eradication triple therapy (with PPI + amoxicillin or metronidazole), if H. pylori confirmed. WHO EML notes clarithromycin is listed for use in H. pylori eradication combination regimens in adults.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.2.2 Watch group antibiotics - clarithromycin, p.21"
+          },
+          {
+            "name": "metronidazole",
+            "dosage_form": "Tablet 400 mg",
+            "dose_instruction": "400 mg orally twice daily for 14 days as part of H. pylori eradication triple therapy (alternative to clarithromycin component in penicillin-allergic patients, with PPI + clarithromycin or as locally protocolised).",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.5.1 Antiamoebic and antigiardiasis medicines - metronidazole, p.23"
+          }
+        ]
+      },
+      "confidence_notes": "H. pylori eradication antibiotics (amoxicillin/clarithromycin/metronidazole) should only be shown if H. pylori testing is documented as positive; otherwise only the PPI (omeprazole) should be shown as empirical therapy."
+    },
+
+    {
+      "condition_id": "SSTI",
+      "condition_name": "Skin and soft tissue infection (cellulitis)",
+      "icd10": "L03.9",
+      "differentials": [
+        {"name": "Necrotizing fasciitis (emergency)", "icd10": "M72.6"},
+        {"name": "Abscess", "icd10": "L02.9"}
+      ],
+      "key_vitals_pattern": "May have fever and mild tachycardia if systemically unwell; rapidly spreading erythema, severe pain disproportionate to exam, or systemic toxicity should raise concern for necrotizing fasciitis (surgical emergency).",
+      "treatment_plan": {
+        "non_pharmacological": "Mark the margin of erythema to monitor progression, elevate affected limb, analgesia (paracetamol). Urgent surgical referral if necrotizing infection suspected.",
+        "medicines": [
+          {
+            "name": "cloxacillin",
+            "dosage_form": "Capsule 250 mg / 500 mg / 1 g (as sodium)",
+            "dose_instruction": "500 mg orally four times daily for 5-7 days for uncomplicated cellulitis (covers Staphylococcus aureus, Streptococcus).",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.2.1 Access group antibiotics - cloxacillin (Skin and soft tissue infections, first choice), p.18"
+          },
+          {
+            "name": "amoxicillin + clavulanic acid",
+            "dosage_form": "Tablet 500 mg + 125 mg",
+            "dose_instruction": "1 tablet (625 mg) orally three times daily for 5-7 days, as first-choice alternative for skin/soft tissue infections, especially if mixed/animal-bite related.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.2.1 Access group antibiotics - amoxicillin+clavulanic acid (Skin and soft tissue infections, first choice), p.16"
+          },
+          {
+            "name": "clindamycin",
+            "dosage_form": "Capsule 150 mg (as hydrochloride)",
+            "dose_instruction": "300-450 mg orally four times daily for 5-7 days for penicillin-allergic patients, or where MRSA coverage is needed per local epidemiology.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 6.2.1 Access group antibiotics - clindamycin, p.18"
+          }
+        ]
+      },
+      "confidence_notes": "If chief complaint or vitals suggest systemic toxicity (high fever, tachycardia, severe pain), the system should flag for urgent in-person assessment rather than outputting an oral-antibiotic-only plan."
+    },
+
+    {
+      "condition_id": "CONJUNCTIVITIS",
+      "condition_name": "Acute bacterial conjunctivitis",
+      "icd10": "H10.3",
+      "differentials": [
+        {"name": "Viral conjunctivitis", "icd10": "H10.1"},
+        {"name": "Allergic conjunctivitis", "icd10": "H10.1"}
+      ],
+      "key_vitals_pattern": "Vitals generally normal; chief complaint of red eye, discharge (purulent suggests bacterial, watery/itchy suggests viral/allergic).",
+      "treatment_plan": {
+        "non_pharmacological": "Eye hygiene, avoid sharing towels/pillows, hand hygiene to prevent spread. Most conjunctivitis is viral/self-limiting; reserve antibiotics for purulent discharge consistent with bacterial cause.",
+        "medicines": [
+          {
+            "name": "gentamicin",
+            "dosage_form": "Solution (eye drops) 0.3% (sulfate)",
+            "dose_instruction": "1-2 drops into affected eye(s) every 4 hours for 5-7 days for bacterial conjunctivitis/blepharitis.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 21.1 Ophthalmological anti-infective agents - gentamicin (Bacterial conjunctivitis), p.52"
+          },
+          {
+            "name": "ofloxacin",
+            "dosage_form": "Solution (eye drops) 0.3%",
+            "dose_instruction": "1-2 drops into affected eye(s) four times daily for 5-7 days for bacterial conjunctivitis.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 21.1 Ophthalmological anti-infective agents - ofloxacin (Bacterial conjunctivitis), p.52"
+          },
+          {
+            "name": "tetracycline",
+            "dosage_form": "Eye ointment 1% (hydrochloride)",
+            "dose_instruction": "Apply small amount into affected eye(s) 2-3 times daily for 5-7 days; also first-line for trachoma-related conjunctivitis.",
+            "tier": 1,
+            "citation": "WHO EML 24th List (2025), Section 21.1 Ophthalmological anti-infective agents - tetracycline (Bacterial conjunctivitis), p.53"
+          }
+        ]
+      },
+      "confidence_notes": "Topical antibiotics should be withheld for clearly viral/allergic presentations (watery/itchy, bilateral, associated URI symptoms) even at high diagnostic confidence."
+    }
+  ]
+}

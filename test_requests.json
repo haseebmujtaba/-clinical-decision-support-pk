@@ -1,0 +1,121 @@
+{
+  "_instructions": "Copy any one of the 'request' objects below (without this _instructions key) and POST it as JSON to http://localhost:8000/diagnose. Each is designed to demonstrate a different pipeline behavior.",
+
+  "test_cases": [
+
+    {
+      "name": "1_critical_alert_hypertensive_crisis",
+      "description": "Dangerously high BP (188/124). Expect critical_alert.flag=true, severity=emergency, raised IMMEDIATELY by the rule engine. Confidence should be high enough for a full recommendation (3 antihypertensive medicines with WHO citations).",
+      "expected_behavior": "critical_alert.flag = true, action = full_recommendation, medicines populated",
+      "request": {
+        "age": 60,
+        "sex": "M",
+        "bp_systolic": 188,
+        "bp_diastolic": 124,
+        "blood_sugar": 110,
+        "blood_sugar_context": "random",
+        "weight_kg": 82,
+        "height_cm": 172,
+        "temperature_c": 36.9,
+        "pulse_bpm": 90,
+        "chief_complaint": "Severe headache and blurred vision"
+      }
+    },
+
+    {
+      "name": "2_severe_hypoglycaemia_emergency",
+      "description": "Blood sugar of 45 mg/dL (severely low). Expect an immediate emergency alert about hypoglycaemia, recommending fast-acting glucose, regardless of what the AI diagnosis layer concludes.",
+      "expected_behavior": "critical_alert.flag = true, severity = emergency, reasons mentions 'hypoglycaemia'",
+      "request": {
+        "age": 30,
+        "sex": "F",
+        "bp_systolic": 118,
+        "bp_diastolic": 76,
+        "blood_sugar": 45,
+        "blood_sugar_context": "random",
+        "weight_kg": 60,
+        "height_cm": 160,
+        "temperature_c": 36.4,
+        "pulse_bpm": 105,
+        "chief_complaint": "Dizziness, sweating, confusion"
+      }
+    },
+
+    {
+      "name": "3_low_confidence_refer_to_specialist",
+      "description": "Vague complaint with unremarkable vitals. The model should NOT be confident enough (below 60%) to commit to a diagnosis, so it should refer to a specialist with empty medicines/diagnosis.",
+      "expected_behavior": "critical_alert.flag = false, confidence < 0.6, action = refer, refer_to_specialist = true, medicines = []",
+      "request": {
+        "age": 28,
+        "sex": "F",
+        "bp_systolic": 118,
+        "bp_diastolic": 76,
+        "blood_sugar": 92,
+        "blood_sugar_context": "random",
+        "weight_kg": 62,
+        "height_cm": 165,
+        "temperature_c": 37.0,
+        "pulse_bpm": 78,
+        "chief_complaint": "Feeling generally unwell and tired for a few days"
+      }
+    },
+
+    {
+      "name": "4_dengue_nsaid_block_test",
+      "description": "Fever + chills pattern that could be malaria or dengue. If dengue appears in the differential list, NSAIDs/aspirin/ibuprofen must be automatically blocked even if the AI proposed them, due to bleeding risk.",
+      "expected_behavior": "If dengue is in differential_diagnoses, medicines list must NOT contain ibuprofen/aspirin/diclofenac/naproxen/mefenamic acid",
+      "request": {
+        "age": 32,
+        "sex": "F",
+        "bp_systolic": 110,
+        "bp_diastolic": 72,
+        "blood_sugar": 98,
+        "blood_sugar_context": "random",
+        "weight_kg": 58,
+        "height_cm": 162,
+        "temperature_c": 39.2,
+        "pulse_bpm": 102,
+        "chief_complaint": "Fever with chills and sweating for 3 days, severe headache, body aches"
+      }
+    },
+
+    {
+      "name": "5_paediatric_patient_warning",
+      "description": "Patient under 18. The rule engine should NOT apply adult thresholds - instead it should flag that a separate paediatric protocol is required (out of scope for Phase 2).",
+      "expected_behavior": "critical_alert.flag = true, severity = warning, reasons mentions 'paediatric protocol'",
+      "request": {
+        "age": 6,
+        "sex": "M",
+        "bp_systolic": 100,
+        "bp_diastolic": 65,
+        "blood_sugar": 130,
+        "blood_sugar_context": "random",
+        "weight_kg": 20,
+        "height_cm": 110,
+        "temperature_c": 39.8,
+        "pulse_bpm": 140,
+        "chief_complaint": "High fever, child very sleepy"
+      }
+    },
+
+    {
+      "name": "6_type2_diabetes_suspected",
+      "description": "Classic T2DM symptoms with elevated blood sugar (215 mg/dL) and high BMI. Tests whether the model picks up diabetes-related conditions and how the (currently weak) classifier responds.",
+      "expected_behavior": "differential_diagnoses likely includes Type 2 Diabetes; check confidence and classifier_output for known classifier bias toward hypertension",
+      "request": {
+        "age": 50,
+        "sex": "M",
+        "bp_systolic": 128,
+        "bp_diastolic": 82,
+        "blood_sugar": 215,
+        "blood_sugar_context": "random",
+        "weight_kg": 90,
+        "height_cm": 170,
+        "temperature_c": 37.0,
+        "pulse_bpm": 84,
+        "chief_complaint": "Increased thirst, frequent urination, fatigue for 2 weeks"
+      }
+    }
+
+  ]
+}
