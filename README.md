@@ -1,4 +1,4 @@
-# AI Model Pipeline
+# CDSS Phase 2 — AI Model Pipeline
 
 AI model component for a Pakistani hospital's Clinical Decision Support
 System (CDSS). Takes patient vitals + chief complaint as input and
@@ -29,8 +29,8 @@ Patient vitals + chief complaint
     (build once, ahead of time)
         |
         v
-[4] llm_pipeline.py         --> RAG retrieval + Mistral 7B (via Ollama)
-    --> raw diagnosis/medicines JSON proposal
+[4] llm_pipeline.py         --> RAG retrieval + LLM reasoning
+    Groq cloud (1-2s) or local Ollama (200s) — switch with LLM_BACKEND
         |
         v
 [5] citation_validator.py   --> citation enforcement, confidence gating,
@@ -41,6 +41,8 @@ Patient vitals + chief complaint
    Final JSON output (main.py / api_server.py)
 ```
 
+---
+
 ## 2. Repo structure
 
 ```
@@ -50,10 +52,13 @@ cdss_phase2/
 ├── rule_engine.py           <- critical alert logic
 ├── knowledge_base.json      <- WHO-cited medicine/condition database (15 conditions)
 ├── build_rag_index.py       <- builds the RAG search index (run once)
-├── llm_pipeline.py           <- LLM (Mistral) reasoning layer
+├── llm_pipeline.py           <- LLM reasoning layer (Groq or Ollama)
 ├── citation_validator.py     <- safety gate (citations, confidence, drug rules)
 ├── requirements.txt
-├── test_requests.json        <- 6 ready-made example patients for testing
+├── test_requests.json        <- ready-made example patients for testing
+├── run_patient.py            <- interactive terminal runner (paste JSON, get output)
+├── debug_pipeline.py         <- debug runner with full error tracebacks
+├── test_groq.py              <- quick Groq connection test
 ├── README.md                  <- this file
 └── data/
     ├── classifier.pkl
@@ -64,239 +69,264 @@ cdss_phase2/
 |---|---|
 | `rule_engine.py` | Pure-Python critical alert logic (BP, blood sugar, temp, pulse, BMI thresholds). Runs first, independent of ML/LLM. |
 | `knowledge_base.json` | Starter KB: 15 conditions with real WHO EML 24th List (2025) citations, adopted as Pakistan's NEML (Gazette 20-Oct-2025). |
-| `build_rag_index.py` | Builds a local ChromaDB vector index over the KB using `all-MiniLM-L6-v2` embeddings (one chunk per condition overview + one per medicine). |
-| `llm_pipeline.py` | Prompt template, RAG retrieval, Mistral 7B call via Ollama, JSON parsing/repair. |
+| `build_rag_index.py` | Builds a local ChromaDB vector index over the KB using `all-MiniLM-L6-v2` embeddings. |
+| `llm_pipeline.py` | Prompt template, RAG retrieval, LLM call (Groq or Ollama), JSON parsing. |
 | `citation_validator.py` | **Safety gate.** Drops any medicine without a KB citation, applies confidence-based gating (>80% full, 60-80% diagnosis only, <60% refer), and hard-coded clinical safety overrides. |
-| `main.py` | End-to-end orchestration. Can be run directly via CLI. |
-| `api_server.py` | FastAPI wrapper exposing `main.run_pipeline()` as a REST endpoint for the web app team. |
+| `main.py` | End-to-end orchestration. Entry point for CLI and API server. |
+| `api_server.py` | FastAPI wrapper exposing `main.run_pipeline()` as a REST endpoint. |
 | `data/classifier.pkl`, `data/label_encoder.pkl` | XGBoost classifier + label encoder from Phase 1 training. |
 
 ---
 
-## 3. One-time setup (per machine)
+## 3. LLM Backend — Groq (fast) vs Ollama (local/offline)
 
-Because the LLM runs 100% locally/offline, **each machine that runs
-this needs its own full setup** — there's no shared server.
+The LLM backend is controlled by one line at the top of `llm_pipeline.py`:
+
+```python
+LLM_BACKEND = "groq"    # change to "ollama" for local offline mode
+```
+
+| | Groq | Ollama |
+|---|---|---|
+| Speed | **1-2 seconds** | ~200 seconds |
+| Internet required | Yes | No |
+| Cost | Free tier | Free (local) |
+| Data privacy | Sends to Groq servers | Stays on your machine |
+| Best for | Demo, dev, web team testing | Production (patient data) |
+
+### API Key security — IMPORTANT
+**Never hardcode your Groq API key in any file.** Always set it as an
+environment variable in your terminal session before running anything:
+
+**Windows (PowerShell):**
+```powershell
+set GROQ_API_KEY=gsk_your_key_here
+```
+
+**Mac/Linux:**
+```bash
+export GROQ_API_KEY=gsk_your_key_here
+```
+
+This must be run in the same terminal session you use to start the
+server or run scripts. It does not persist between terminal sessions —
+set it again each time you open a new terminal.
+
+Get a free key at: https://console.groq.com (no credit card required)
+
+---
+
+## 4. One-time setup (per machine)
 
 ```bash
 # 1. Install Python dependencies
 pip install -r requirements.txt
 
-# 2. Install Ollama (https://ollama.com) and pull the model
-ollama pull mistral
-ollama serve   # usually runs automatically as a background service
-
-# 3. Build the RAG search index (run once, or whenever
-#    knowledge_base.json changes; downloads a small ~80MB
-#    embedding model on first run)
+# 2. Build the RAG search index (run once, or whenever
+#    knowledge_base.json changes; downloads ~80MB embedding
+#    model on first run)
 python build_rag_index.py
+
+# 3. (Groq only) Get a free API key at console.groq.com
+#    Then set it in your terminal — see API Key section above.
+
+# 4. (Ollama only) Install Ollama (https://ollama.com) and pull model
+ollama pull mistral
+ollama serve
 ```
 
-Place `classifier.pkl` and `label_encoder.pkl` (from the Day3-5 Colab
-script) into `data/`. If absent, the pipeline still runs — the
-classifier signal is simply omitted and the LLM prompt notes "no
-classifier output available".
+Place `classifier.pkl` and `label_encoder.pkl` into `data/`. If absent,
+the pipeline still runs — the classifier signal is simply omitted.
 
 ---
 
-## 4. Running via CLI (for development/debugging)
+## 5. Running locally via terminal (quickest way to test)
 
-```bash
-# Run built-in sample patients (malaria/dengue, hypertensive crisis, T2DM)
-python main.py
+Use `run_patient.py` — paste any patient JSON directly in the terminal
+and get the full pipeline output without starting a server:
 
-# Run a single patient from a JSON file
-python main.py patient.json
+```powershell
+# Step 1: Set your Groq API key
+set GROQ_API_KEY=gsk_your_key_here
+
+# Step 2: Run the interactive terminal runner
+python run_patient.py
 ```
 
-`patient.json` should contain the same fields as `VitalsInput`:
+Paste a patient JSON when prompted (see `test_requests.json` for examples),
+then press **Enter twice**. Output prints directly to the terminal.
 
+**Example input to paste:**
 ```json
 {
-  "age": 32,
-  "sex": "F",
-  "bp_systolic": 110,
-  "bp_diastolic": 72,
-  "blood_sugar": 98,
+  "age": 60,
+  "sex": "M",
+  "bp_systolic": 188,
+  "bp_diastolic": 124,
+  "blood_sugar": 110,
   "blood_sugar_context": "random",
-  "weight_kg": 58,
-  "height_cm": 162,
-  "temperature_c": 39.2,
-  "pulse_bpm": 102,
-  "chief_complaint": "Fever with chills and sweating for 3 days, severe headache"
+  "weight_kg": 82,
+  "height_cm": 172,
+  "temperature_c": 36.9,
+  "pulse_bpm": 90,
+  "chief_complaint": "Severe headache and blurred vision"
 }
 ```
 
+**Expected output:** Emergency critical alert + hypertension diagnosis +
+3 medicines with WHO citations, all in ~1.5 seconds via Groq.
+
+You can also test Groq connectivity on its own before running the full pipeline:
+```powershell
+python test_groq.py
+```
+
 ---
 
-## 5. Running via API (for the web app team)
+## 6. Running via API server (for web app team)
 
-Start the server:
+### Start the server
 
-```bash
+```powershell
+# Step 1: Set your Groq API key (required every new terminal session)
+set GROQ_API_KEY=gsk_your_key_here
+
+# Step 2: Start the API server
 uvicorn api_server:app --host 0.0.0.0 --port 8000
 ```
 
-Then open `http://localhost:8000/docs` — an interactive Swagger UI
-where you can test requests directly without writing any code.
-
-### `POST /diagnose`
-
-Send patient vitals, get back the full decision-support JSON.
-
-**Request body example:**
-
-```json
-{
-  "age": 32,
-  "sex": "F",
-  "bp_systolic": 110,
-  "bp_diastolic": 72,
-  "blood_sugar": 98,
-  "blood_sugar_context": "random",
-  "weight_kg": 58,
-  "height_cm": 162,
-  "temperature_c": 39.2,
-  "pulse_bpm": 102,
-  "chief_complaint": "Fever with chills and sweating for 3 days, severe headache, body aches"
-}
+Wait for `Application startup complete.` then open:
+```
+http://localhost:8000/docs
 ```
 
-All fields are optional except `chief_complaint`, but a useful
-diagnosis needs all vitals filled in. `sex` must be `"M"` or `"F"`.
-`blood_sugar_context` is `"fasting"`, `"random"`, or `"post_meal"`.
+This opens **Swagger UI** — an interactive page where you can test the
+API without writing any code.
 
-**curl example:**
+### Testing via Swagger UI (browser)
 
-```bash
-curl -X POST http://localhost:8000/diagnose \
-  -H "Content-Type: application/json" \
-  -d '{
-    "age": 60, "sex": "M",
-    "bp_systolic": 188, "bp_diastolic": 124,
-    "blood_sugar": 110, "blood_sugar_context": "random",
-    "weight_kg": 82, "height_cm": 172,
-    "temperature_c": 36.9, "pulse_bpm": 90,
-    "chief_complaint": "Severe headache and blurred vision"
-  }'
+1. Open `http://localhost:8000/docs`
+2. Click **POST /diagnose** → click **Try it out**
+3. Delete the default JSON in the text box
+4. Paste any `request` object from `test_requests.json`
+5. Click **Execute**
+6. Wait ~1-2 seconds (Groq) — response appears under "Server response"
+
+### Testing via terminal (curl alternative on Windows)
+
+Open a **second terminal** (keep the server running in the first), then:
+
+```powershell
+python run_patient.py
 ```
 
-**Response shape (key fields):**
+Paste the patient JSON, press Enter twice — gets routed through the
+same pipeline as the API.
+
+### API endpoints
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/diagnose` | POST | Run full pipeline, returns diagnosis JSON |
+| `/health` | GET | Check server started correctly |
+| `/conditions` | GET | List all 15 KB conditions with ICD-10 codes |
+| `/docs` | GET | Interactive Swagger UI for browser testing |
+
+### Response shape (key fields)
 
 | Field | Meaning |
 |---|---|
-| `critical_alert` | Emergency flag from the rule engine. `flag: true` means the UI should show this immediately, regardless of the rest of the response. |
+| `critical_alert` | Emergency flag from rule engine. `flag: true` = show immediately in UI regardless of everything else. |
 | `diagnosis` | `{name, icd10}` — empty `{}` if referred to specialist. |
-| `confidence` | 0.0-1.0. Below 0.6 → refer; 0.6-0.8 → diagnosis only; above 0.8 → full recommendation. |
-| `differential_diagnoses` | Other possibilities the model considered. |
-| `medicines` | Array of `{name, dosage_form, dose_instruction, tier, citation, drap_check, flag?}`. Empty if `refer_to_specialist` is true. |
-| `treatment_plan_notes` | Non-medicine advice (lifestyle, etc.) |
-| `action` | `"full_recommendation"` \| `"diagnosis_only"` \| `"refer"` |
+| `confidence` | 0.0-1.0. Below 0.6 → refer; 0.6-0.8 → diagnosis only; above 0.8 → full recommendation with medicines. |
+| `differential_diagnoses` | Other conditions the model considered. |
+| `medicines` | Array of `{name, dosage_form, dose_instruction, tier, citation, drap_check}`. Empty if refer_to_specialist is true. |
+| `treatment_plan_notes` | Non-medicine advice (lifestyle, diet, etc.) |
+| `action` | `"full_recommendation"` / `"diagnosis_only"` / `"refer"` |
 | `refer_to_specialist` | `true`/`false` |
-| `refer_reason` | Human-readable reason if referred. |
-| `classifier_output` | Top-5 XGBoost predictions (for transparency/audit, not for display as "the answer"). |
-| `llm_reasoning` | 2-3 sentence plain-text explanation from the LLM. |
+| `refer_reason` | Plain English reason if referred. |
+| `classifier_output` | Top-5 XGBoost predictions (audit trail, not the diagnosis). |
+| `llm_reasoning` | 2-3 sentence plain English explanation from the LLM. |
 
-### `GET /health`
+---
 
-Quick check that the server started correctly:
-```json
-{ "status": "ok", "classifier_loaded": true, "kb_conditions_loaded": 15 }
+## 7. Response time
+
+| Backend | Response time | Notes |
+|---|---|---|
+| Groq (cloud) | **1-2 seconds** | Requires internet + API key |
+| Ollama (local) | ~200 seconds | Fully offline, first call slower (model load) |
+
+**For the web app:** use a request timeout of at least 30s for Groq,
+300s for Ollama. Always show a loading state — never assume instant response.
+
+---
+
+## 8. Test cases
+
+`test_requests.json` contains ready-made patients covering all pipeline behaviors:
+
+| # | Scenario | Expected behavior |
+|---|---|---|
+| 1 | Hypertensive crisis (BP 188/124) | `critical_alert.flag=true`, emergency, full medicines |
+| 2 | Severe hypoglycaemia (sugar 45) | `critical_alert.flag=true`, emergency |
+| 3 | Vague symptoms | `confidence < 0.6`, refer, no medicines |
+| 4 | Fever + dengue suspected | NSAID/aspirin blocked from medicine list |
+| 5 | Child age 6 | Paediatric warning, adult thresholds not applied |
+| 6 | Classic T2DM symptoms | Tests classifier bias (likely says hypertension) |
+
+Copy any `request` object from that file and use it in `run_patient.py`
+or Swagger UI.
+
+---
+
+## 9. Debugging
+
+If you get errors, run the debug script instead of the API server —
+it shows the full error traceback:
+
+```powershell
+python debug_pipeline.py
 ```
 
-### `GET /conditions`
-
-Lists the 15 conditions currently in the knowledge base, with their
-ICD-10 codes — useful for understanding current model coverage.
+This runs the hypertensive crisis sample through the entire pipeline
+and prints exactly where and why it fails.
 
 ---
 
-## 6. CRITICAL: Response time
+## 10. Safety mechanisms (Phase 2)
 
-**Each `/diagnose` call takes roughly 1-4 minutes** on CPU-only
-hardware (no GPU). This is because of local LLM inference (Mistral
-7B via Ollama) — it is NOT a network or server bug.
-
-**Implications for the web app:**
-- Use a request timeout of **at least 300 seconds (5 minutes)**.
-- Show a loading/spinner state — do NOT treat this like a typical
-  sub-second API.
-- Consider calling `/diagnose` asynchronously (e.g. submit + poll, or
-  websocket/job-queue pattern) if your UI framework times out on long
-  HTTP requests by default.
-- The first request after starting the server may be even slower
-  (model warm-up).
-
----
-
-## 7. Testing
-
-Use `test_requests.json` — it contains 6 ready-made example patients,
-each labeled with the behavior it's designed to demonstrate:
-
-1. **Hypertensive crisis** — instant emergency alert + full medicine recommendation
-2. **Severe hypoglycaemia** — instant emergency alert
-3. **Vague/borderline symptoms** — low confidence → refer to specialist, no medicines
-4. **Fever/dengue case** — tests the NSAID safety block
-5. **Paediatric patient (age 6)** — adult thresholds shouldn't apply, special warning
-6. **Diabetes symptoms** — shows the classifier's known bias
-
-Copy any `request` object from that file and paste it into the
-`/diagnose` endpoint in Swagger UI (`http://localhost:8000/docs`).
+- **Citation enforcement**: any medicine without a KB citation is dropped.
+  If the diagnosis has no KB grounding at all, case is referred to specialist.
+- **Confidence gating**: >80% full recommendation, 60-80% diagnosis only, <60% refer entirely.
+- **Dengue/NSAID hard block**: ibuprofen/aspirin/diclofenac/naproxen/mefenamic acid
+  blocked if dengue is in the differential — regardless of confidence.
+- **TB referral-only**: TB_PULM always refers to national TB programme / DOTS.
+  Medicine list suppressed entirely.
+- **Conditional antibiotics**: PUD H. pylori eradication and gastroenteritis
+  ciprofloxacin only shown if clinically documented in chief complaint.
+- **URI antibiotic flag**: penicillin/amoxicillin for pharyngitis flagged for
+  explicit bacterial-vs-viral physician review.
+- **Critical alert priority**: rule_engine output always included in final JSON
+  independent of AI confidence — UI must surface this immediately.
 
 ---
 
-## 8. Safety mechanisms implemented (Phase 2)
+## 11. Known limitations (Phase 2)
 
-- **Citation enforcement**: any medicine without a matching KB entry +
-  citation is dropped; if the diagnosis itself has no KB grounding, the
-  case is referred to a specialist with no medicines shown.
-- **Confidence gating**: >80% full recommendation, 60-80% diagnosis only
-  ("verify with specialist"), <60% refer entirely (no medicines).
-- **Dengue/NSAID hard block**: if dengue is in the differential list,
-  ibuprofen/aspirin/diclofenac/naproxen/mefenamic acid are blocked
-  regardless of confidence.
-- **TB referral-only**: `TB_PULM` always routes to "refer to national TB
-  programme / DOTS"; its medicine entry is reference-only and never
-  shown to the patient/physician as an active prescription.
-- **Conditional antibiotics**: PUD's H. pylori eradication regimen and
-  gastroenteritis's ciprofloxacin are only shown if the chief complaint
-  documents the relevant clinical trigger (H. pylori positivity /
-  dysentery features).
-- **URI antibiotic review flag**: phenoxymethylpenicillin/amoxicillin for
-  pharyngitis are flagged for explicit bacterial-vs-viral physician
-  review rather than auto-recommended.
-- **Critical alert priority**: `rule_engine.py` output is always attached
-  to the final JSON as `critical_alert`, independent of AI confidence —
-  the hospital UI should surface this immediately regardless of
-  diagnosis.
-
----
-
-## 9. Known limitations (Phase 2)
-
-- DRAP National Drug List check is a placeholder (`check_drap_registration`
-  returns `"not_checked"`); KB medicines are currently treated as
-  PNF/DRAP-aligned because Pakistan's NEML 2025 adopted the WHO 24th
-  list verbatim (Gazette 20-Oct-2025).
-- Classifier accuracy is currently ~65% overall with severe class
-  imbalance (see `training_data_card.json`); it is used as a weak
+- DRAP National Drug List check is a placeholder (`drap_status: "not_checked"`).
+  KB medicines treated as PNF/DRAP-aligned via NEML 2025 = WHO EML 24th List.
+- XGBoost classifier ~65% accuracy with severe class imbalance — used as weak
   signal only, not ground truth.
-- Vitals input does not capture SpO2 or respiratory rate, which limits
-  asthma/CAP severity assessment (documented in `knowledge_base.json`
-  `confidence_notes`).
-- `sex` encoding in `main.py`'s classifier wrapper (`M=1, F=0`) should
-  be verified against the actual encoding used in the Day3-5 training
-  script.
-- **15 conditions covered** in the current knowledge base. Anything
-  outside this scope correctly results in `refer_to_specialist: true`.
+- No SpO2 or respiratory rate input — limits asthma/CAP severity assessment.
+- 15 conditions in current KB. Anything outside scope → `refer_to_specialist: true`.
+- Groq free tier: 30 requests/minute, 14,400 requests/day limit.
 
 ---
 
-## 10. Next steps
+## 12. Next steps
 
-- Replace placeholder/Tier4 posology with PNF-specific dosing tables.
-- Wire `check_drap_registration()` to a live DRAP National Drug List
-  source.
-- Level 1/2/3 validation per the project validation plan (50 hand-crafted
-  cases, 100-case doctor review, MedQA/MedMCQA benchmark).
+- Replace placeholder posology with PNF-specific dosing tables.
+- Wire `check_drap_registration()` to live DRAP National Drug List.
+- Level 1/2/3 validation (50 hand-crafted cases, 100-case doctor review,
+  MedQA/MedMCQA benchmark).
