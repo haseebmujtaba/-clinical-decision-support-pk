@@ -3,23 +3,20 @@ llm_pipeline.py
 ===============
 Phase 2 - Step 4: LLM reasoning layer.
 
-Calls Mistral 7B via Ollama (100% local/offline) to produce a
-structured diagnosis JSON, GROUNDED in:
-    - the patient's vitals + chief complaint
-    - the XGBoost classifier's probability distribution
-    - RAG-retrieved chunks from the WHO EML-based knowledge base
-      (via build_rag_index.py / ChromaDB)
+Supports two LLM backends — switch with LLM_BACKEND below:
 
-The LLM is explicitly instructed to ONLY use conditions and medicines
-that appear in the retrieved context, and to output STRICT JSON
-matching PROMPT_TEMPLATE's schema. The output is then passed to
-citation_validator.py, which is the actual safety gate - this module
-does NOT do safety enforcement itself, only retrieval + generation +
-JSON parsing.
+  "groq"   — Groq cloud API (free tier, ~2-5s responses, requires
+              GROQ_API_KEY env variable or hardcoded below).
+              Uses mixtral-8x7b-32768 by default (fast + accurate).
+              NOTE: sends patient data to Groq's servers — for demo/dev
+              only, not for production patient data.
 
-Requires Ollama running locally with the mistral model pulled:
-    ollama pull mistral
-    ollama serve   (usually already running as a service)
+  "ollama" — Local Mistral 7B via Ollama (100% offline, ~200s on CPU,
+              no data leaves the machine). Requires ollama running
+              locally with the mistral model pulled.
+
+Switch between them by changing LLM_BACKEND = "groq" / "ollama".
+Everything else (RAG, citation validation, safety gating) is unchanged.
 """
 
 import json
@@ -32,14 +29,26 @@ import requests
 import chromadb
 from chromadb.utils import embedding_functions
 
-CHROMA_DIR = os.path.join(os.path.dirname(__file__), "chroma_db")
-COLLECTION_NAME = "cdss_kb_phase2"
-EMBED_MODEL_NAME = "all-MiniLM-L6-v2"
+# =====================================================================
+# SWITCH HERE: "groq" for fast cloud inference, "ollama" for local
+# =====================================================================
+LLM_BACKEND = "groq"   # <-- change to "ollama" to go back to local
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
+# --- Groq settings ---
+# Set your key here OR as an environment variable: set GROQ_API_KEY=gsk_...
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "put your api key here")
+GROQ_MODEL   = "llama-3.3-70b-versatile"   # 128k context window
+GROQ_URL     = "https://api.groq.com/openai/v1/chat/completions"
+
+# --- Ollama settings ---
+OLLAMA_URL   = "http://localhost:11434/api/generate"
 OLLAMA_MODEL = "mistral"
 
-N_RAG_RESULTS = 8  # retrieved chunks passed to the LLM as context
+# --- Shared ---
+CHROMA_DIR        = os.path.join(os.path.dirname(__file__), "chroma_db")
+COLLECTION_NAME   = "cdss_kb_phase2"
+EMBED_MODEL_NAME  = "all-MiniLM-L6-v2"
+N_RAG_RESULTS     = 3   # kept small to stay within Groq free-tier token limits
 
 
 # ---------------------------------------------------------------------
@@ -223,25 +232,68 @@ def build_prompt(
 
 
 # ---------------------------------------------------------------------
-# Ollama call
+# LLM call — Groq or Ollama depending on LLM_BACKEND
 # ---------------------------------------------------------------------
+
+def call_groq(prompt: str) -> str:
+    """
+    Call the Groq cloud API (OpenAI-compatible chat completions).
+    Requires GROQ_API_KEY to be set.
+    Typical response time: 2-5 seconds.
+    """
+    if GROQ_API_KEY == "YOUR_GROQ_API_KEY_HERE":
+        raise ValueError(
+            "Groq API key not set. Either:\n"
+            "  1. Set environment variable: set GROQ_API_KEY=gsk_...\n"
+            "  2. Or paste your key directly into GROQ_API_KEY in llm_pipeline.py"
+        )
+
+    headers = {
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "model": GROQ_MODEL,
+        "messages": [
+            {
+                "role": "system",
+                "content": (
+                    "You are a clinical decision support assistant. "
+                    "You MUST respond with valid JSON only — no markdown, "
+                    "no commentary, no code fences. Just the raw JSON object."
+                ),
+            },
+            {"role": "user", "content": prompt},
+        ],
+        "temperature": 0.1,
+        "max_tokens": 2000,
+    }
+
+    start = time.time()
+    response = requests.post(GROQ_URL, headers=headers, json=payload, timeout=60)
+    if not response.ok:
+        print(f"[llm_pipeline] Groq error {response.status_code}: {response.text}")
+    response.raise_for_status()
+    elapsed = time.time() - start
+
+    data = response.json()
+    raw_text = data["choices"][0]["message"]["content"]
+    print(f"[llm_pipeline] Groq ({GROQ_MODEL}) responded in {elapsed:.1f}s")
+    return raw_text
+
 
 def call_ollama(prompt: str, model: str = OLLAMA_MODEL, timeout: int = 600) -> str:
     """
-    Send the prompt to a locally running Ollama instance and return
-    the raw text response.
-
-    On an i5-8500/12GB RAM CPU-only setup, expect ~25-35s per response.
+    Call local Ollama instance.
+    On i5-8500/12GB RAM CPU-only: expect ~200s per response.
     """
     payload = {
         "model": model,
         "prompt": prompt,
         "stream": False,
-        "format": "json",  # ask Ollama to constrain output to valid JSON
-        "options": {
-            "temperature": 0.1,  # low temperature: we want consistent,
-                                  # grounded clinical output, not creativity
-        },
+        "format": "json",
+        "keep_alive": "30m",   # keep model loaded between calls
+        "options": {"temperature": 0.1},
     }
     start = time.time()
     response = requests.post(OLLAMA_URL, json=payload, timeout=timeout)
@@ -252,6 +304,19 @@ def call_ollama(prompt: str, model: str = OLLAMA_MODEL, timeout: int = 600) -> s
     raw_text = data.get("response", "")
     print(f"[llm_pipeline] Ollama ({model}) responded in {elapsed:.1f}s")
     return raw_text
+
+
+def call_llm(prompt: str) -> str:
+    """
+    Route to the correct backend based on LLM_BACKEND setting.
+    Change LLM_BACKEND at the top of this file to switch.
+    """
+    if LLM_BACKEND == "groq":
+        return call_groq(prompt)
+    elif LLM_BACKEND == "ollama":
+        return call_ollama(prompt)
+    else:
+        raise ValueError(f"Unknown LLM_BACKEND: '{LLM_BACKEND}'. Use 'groq' or 'ollama'.")
 
 
 # ---------------------------------------------------------------------
@@ -329,7 +394,7 @@ def run_llm_reasoning(
     retrieved_chunks = retrieve_context(query_text)
     prompt = build_prompt(vitals, classifier_probs, critical_alert, retrieved_chunks)
 
-    raw_text = call_ollama(prompt)
+    raw_text = call_llm(prompt)
     parsed = parse_llm_json(raw_text)
     return parsed
 
