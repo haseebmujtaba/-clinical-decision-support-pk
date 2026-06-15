@@ -1,0 +1,176 @@
+{
+  "generated_at": "2026-06-15T16:03:24.108434",
+  "rows_per_condition": 1500,
+  "total_rows": 22500,
+  "conditions": 15,
+  "features": [
+    "bp_systolic",
+    "bp_diastolic",
+    "blood_sugar",
+    "weight_kg",
+    "height_cm",
+    "bmi",
+    "temperature_c",
+    "pulse_bpm",
+    "age",
+    "sex"
+  ],
+  "clinical_notes": {
+    "Malaria_vs_Typhoid": "Key differentiator: Malaria temp mean ~39.5C, pulse ~112. Typhoid temp mean ~38.9C, pulse ~76 (relative bradycardia). This should fix the typhoid over-diagnosis in the classifier.",
+    "Dengue_vs_Malaria": "Dengue: lower BP (plasma leakage), urban setting. Malaria: higher temp spikes, rural travel.",
+    "Conjunctivitis": "Vitals are near-normal \u2014 classifier will always struggle here. This condition is best routed via chief complaint (RAG), not vitals.",
+    "Anaemia": "Strongly female (75%). Low BP + compensatory tachycardia pattern."
+  },
+  "condition_stats": {
+    "Hypertension": {
+      "rows": 1500,
+      "bp_systolic_mean": 162.5,
+      "temperature_mean": 36.9,
+      "pulse_mean": 85.2,
+      "blood_sugar_mean": 116.3,
+      "bmi_mean": 30.3,
+      "age_mean": 55.2,
+      "pct_male": 55.2
+    },
+    "Type 2 Diabetes": {
+      "rows": 1500,
+      "bp_systolic_mean": 138.4,
+      "temperature_mean": 36.9,
+      "pulse_mean": 84.4,
+      "blood_sugar_mean": 229.7,
+      "bmi_mean": 32.2,
+      "age_mean": 50.1,
+      "pct_male": 48.9
+    },
+    "Malaria": {
+      "rows": 1500,
+      "bp_systolic_mean": 102.2,
+      "temperature_mean": 39.5,
+      "pulse_mean": 112.5,
+      "blood_sugar_mean": 81.8,
+      "bmi_mean": 22.1,
+      "age_mean": 27.6,
+      "pct_male": 66.4
+    },
+    "Typhoid": {
+      "rows": 1500,
+      "bp_systolic_mean": 108.1,
+      "temperature_mean": 38.9,
+      "pulse_mean": 76.1,
+      "blood_sugar_mean": 88.3,
+      "bmi_mean": 21.6,
+      "age_mean": 24.1,
+      "pct_male": 51.7
+    },
+    "URI/Pharyngitis": {
+      "rows": 1500,
+      "bp_systolic_mean": 115.2,
+      "temperature_mean": 37.9,
+      "pulse_mean": 88.0,
+      "blood_sugar_mean": 92.3,
+      "bmi_mean": 23.7,
+      "age_mean": 22.6,
+      "pct_male": 48.9
+    },
+    "Pneumonia": {
+      "rows": 1500,
+      "bp_systolic_mean": 112.3,
+      "temperature_mean": 39.0,
+      "pulse_mean": 110.2,
+      "blood_sugar_mean": 108.5,
+      "bmi_mean": 24.7,
+      "age_mean": 44.4,
+      "pct_male": 54.1
+    },
+    "Gastroenteritis": {
+      "rows": 1500,
+      "bp_systolic_mean": 106.0,
+      "temperature_mean": 37.6,
+      "pulse_mean": 98.4,
+      "blood_sugar_mean": 84.5,
+      "bmi_mean": 23.2,
+      "age_mean": 25.2,
+      "pct_male": 49.0
+    },
+    "Anaemia": {
+      "rows": 1500,
+      "bp_systolic_mean": 101.8,
+      "temperature_mean": 36.8,
+      "pulse_mean": 98.0,
+      "blood_sugar_mean": 88.4,
+      "bmi_mean": 20.6,
+      "age_mean": 27.7,
+      "pct_male": 26.1
+    },
+    "UTI": {
+      "rows": 1500,
+      "bp_systolic_mean": 115.2,
+      "temperature_mean": 37.8,
+      "pulse_mean": 84.1,
+      "blood_sugar_mean": 95.6,
+      "bmi_mean": 23.6,
+      "age_mean": 30.9,
+      "pct_male": 14.1
+    },
+    "Asthma": {
+      "rows": 1500,
+      "bp_systolic_mean": 118.1,
+      "temperature_mean": 37.2,
+      "pulse_mean": 111.9,
+      "blood_sugar_mean": 95.1,
+      "bmi_mean": 25.2,
+      "age_mean": 27.8,
+      "pct_male": 49.1
+    },
+    "Dengue": {
+      "rows": 1500,
+      "bp_systolic_mean": 98.1,
+      "temperature_mean": 39.2,
+      "pulse_mean": 108.1,
+      "blood_sugar_mean": 83.8,
+      "bmi_mean": 22.5,
+      "age_mean": 25.5,
+      "pct_male": 58.9
+    },
+    "TB Screening": {
+      "rows": 1500,
+      "bp_systolic_mean": 108.3,
+      "temperature_mean": 37.8,
+      "pulse_mean": 92.0,
+      "blood_sugar_mean": 88.5,
+      "bmi_mean": 17.8,
+      "age_mean": 37.4,
+      "pct_male": 63.5
+    },
+    "Peptic Ulcer": {
+      "rows": 1500,
+      "bp_systolic_mean": 122.0,
+      "temperature_mean": 37.0,
+      "pulse_mean": 80.1,
+      "blood_sugar_mean": 98.5,
+      "bmi_mean": 25.8,
+      "age_mean": 39.7,
+      "pct_male": 63.5
+    },
+    "Skin Infection": {
+      "rows": 1500,
+      "bp_systolic_mean": 124.5,
+      "temperature_mean": 38.1,
+      "pulse_mean": 87.9,
+      "blood_sugar_mean": 114.4,
+      "bmi_mean": 27.4,
+      "age_mean": 37.7,
+      "pct_male": 58.1
+    },
+    "Conjunctivitis": {
+      "rows": 1500,
+      "bp_systolic_mean": 115.0,
+      "temperature_mean": 36.9,
+      "pulse_mean": 76.0,
+      "blood_sugar_mean": 92.1,
+      "bmi_mean": 24.3,
+      "age_mean": 22.0,
+      "pct_male": 50.5
+    }
+  }
+}

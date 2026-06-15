@@ -37,7 +37,7 @@ LLM_BACKEND = "groq"   # <-- change to "ollama" to go back to local
 # --- Groq settings ---
 # Set your key here OR as an environment variable: set GROQ_API_KEY=gsk_...
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "put your api key here")
-GROQ_MODEL   = "llama-3.3-70b-versatile"   # 128k context window
+GROQ_MODEL   = "llama-3.3-70b-versatile"   # 128k context windows
 GROQ_URL     = "https://api.groq.com/openai/v1/chat/completions"
 
 # --- Ollama settings ---

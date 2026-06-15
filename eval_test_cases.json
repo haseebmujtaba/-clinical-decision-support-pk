@@ -1,0 +1,503 @@
+[
+  {
+    "test_id": "TC001",
+    "description": "Classic hypertensive crisis",
+    "input": {
+      "bp_systolic": 185,
+      "bp_diastolic": 122,
+      "blood_sugar": 110,
+      "weight_kg": 80,
+      "height_cm": 170,
+      "temperature_c": 37.0,
+      "pulse_bpm": 95,
+      "age": 55,
+      "sex": "M",
+      "chief_complaint": "severe headache and chest pain"
+    },
+    "expected": {
+      "diagnosis": "Hypertension",
+      "icd10": "I10",
+      "critical_alert": true,
+      "must_contain_medicine_class": ["antihypertensive"],
+      "must_not_contain": [],
+      "min_confidence": 80,
+      "refer_only": false
+    }
+  },
+  {
+    "test_id": "TC002",
+    "description": "Hypoglycaemia emergency",
+    "input": {
+      "bp_systolic": 110,
+      "bp_diastolic": 70,
+      "blood_sugar": 45,
+      "weight_kg": 65,
+      "height_cm": 165,
+      "temperature_c": 37.1,
+      "pulse_bpm": 105,
+      "age": 45,
+      "sex": "F",
+      "chief_complaint": "dizziness, sweating, confusion"
+    },
+    "expected": {
+      "diagnosis": "Type 2 Diabetes",
+      "icd10": "E11",
+      "critical_alert": true,
+      "must_contain_medicine_class": [],
+      "must_not_contain": [],
+      "min_confidence": 60,
+      "refer_only": false
+    }
+  },
+  {
+    "test_id": "TC003",
+    "description": "Dengue — NSAID block must trigger",
+    "input": {
+      "bp_systolic": 100,
+      "bp_diastolic": 65,
+      "blood_sugar": 95,
+      "weight_kg": 58,
+      "height_cm": 162,
+      "temperature_c": 39.2,
+      "pulse_bpm": 110,
+      "age": 28,
+      "sex": "M",
+      "chief_complaint": "high fever, severe body ache, rash, retro-orbital headache"
+    },
+    "expected": {
+      "diagnosis": "Dengue",
+      "icd10": "A90",
+      "critical_alert": false,
+      "must_contain_medicine_class": ["analgesic"],
+      "must_not_contain": ["ibuprofen", "aspirin", "diclofenac", "naproxen", "mefenamic acid"],
+      "min_confidence": 60,
+      "refer_only": false
+    }
+  },
+  {
+    "test_id": "TC004",
+    "description": "Paediatric patient — warning flag",
+    "input": {
+      "bp_systolic": 95,
+      "bp_diastolic": 60,
+      "blood_sugar": 88,
+      "weight_kg": 22,
+      "height_cm": 120,
+      "temperature_c": 38.5,
+      "pulse_bpm": 115,
+      "age": 8,
+      "sex": "M",
+      "chief_complaint": "cough, sore throat, runny nose"
+    },
+    "expected": {
+      "diagnosis": "URI/Pharyngitis",
+      "icd10": "J06.9",
+      "critical_alert": false,
+      "paediatric_warning": true,
+      "must_contain_medicine_class": [],
+      "must_not_contain": [],
+      "min_confidence": 50,
+      "refer_only": false
+    }
+  },
+  {
+    "test_id": "TC005",
+    "description": "TB — must always refer only",
+    "input": {
+      "bp_systolic": 108,
+      "bp_diastolic": 68,
+      "blood_sugar": 92,
+      "weight_kg": 50,
+      "height_cm": 168,
+      "temperature_c": 37.8,
+      "pulse_bpm": 88,
+      "age": 35,
+      "sex": "M",
+      "chief_complaint": "chronic cough more than 3 weeks, night sweats, weight loss, haemoptysis"
+    },
+    "expected": {
+      "diagnosis": "TB Screening",
+      "icd10": "Z03.8",
+      "critical_alert": false,
+      "must_contain_medicine_class": [],
+      "must_not_contain": [],
+      "min_confidence": 0,
+      "refer_only": true
+    }
+  },
+  {
+    "test_id": "TC006",
+    "description": "Type 2 Diabetes — controlled",
+    "input": {
+      "bp_systolic": 130,
+      "bp_diastolic": 82,
+      "blood_sugar": 210,
+      "weight_kg": 88,
+      "height_cm": 168,
+      "temperature_c": 37.0,
+      "pulse_bpm": 80,
+      "age": 52,
+      "sex": "F",
+      "chief_complaint": "increased thirst, frequent urination, fatigue"
+    },
+    "expected": {
+      "diagnosis": "Type 2 Diabetes",
+      "icd10": "E11",
+      "critical_alert": false,
+      "must_contain_medicine_class": ["antidiabetic"],
+      "must_not_contain": [],
+      "min_confidence": 70,
+      "refer_only": false
+    }
+  },
+  {
+    "test_id": "TC007",
+    "description": "Malaria falciparum — fever + travel",
+    "input": {
+      "bp_systolic": 105,
+      "bp_diastolic": 68,
+      "blood_sugar": 85,
+      "weight_kg": 62,
+      "height_cm": 170,
+      "temperature_c": 39.8,
+      "pulse_bpm": 112,
+      "age": 30,
+      "sex": "M",
+      "chief_complaint": "high fever with chills and rigors, headache, vomiting, recent travel to Sindh rural area"
+    },
+    "expected": {
+      "diagnosis": "Malaria",
+      "icd10": "B50",
+      "critical_alert": true,
+      "must_contain_medicine_class": ["antimalarial"],
+      "must_not_contain": [],
+      "min_confidence": 60,
+      "refer_only": false
+    }
+  },
+  {
+    "test_id": "TC008",
+    "description": "Typhoid — classic presentation",
+    "input": {
+      "bp_systolic": 112,
+      "bp_diastolic": 72,
+      "blood_sugar": 90,
+      "weight_kg": 55,
+      "height_cm": 160,
+      "temperature_c": 39.3,
+      "pulse_bpm": 78,
+      "age": 22,
+      "sex": "F",
+      "chief_complaint": "stepwise fever for 5 days, abdominal pain, constipation, rose spots on abdomen"
+    },
+    "expected": {
+      "diagnosis": "Typhoid",
+      "icd10": "A01.0",
+      "critical_alert": true,
+      "must_contain_medicine_class": ["antibiotic"],
+      "must_not_contain": [],
+      "min_confidence": 60,
+      "refer_only": false
+    }
+  },
+  {
+    "test_id": "TC009",
+    "description": "UTI — female patient",
+    "input": {
+      "bp_systolic": 118,
+      "bp_diastolic": 75,
+      "blood_sugar": 95,
+      "weight_kg": 60,
+      "height_cm": 158,
+      "temperature_c": 37.9,
+      "pulse_bpm": 82,
+      "age": 32,
+      "sex": "F",
+      "chief_complaint": "burning urination, frequency, lower abdominal pain, cloudy urine"
+    },
+    "expected": {
+      "diagnosis": "UTI",
+      "icd10": "N39.0",
+      "critical_alert": false,
+      "must_contain_medicine_class": ["antibiotic"],
+      "must_not_contain": [],
+      "min_confidence": 65,
+      "refer_only": false
+    }
+  },
+  {
+    "test_id": "TC010",
+    "description": "Asthma acute exacerbation",
+    "input": {
+      "bp_systolic": 125,
+      "bp_diastolic": 80,
+      "blood_sugar": 100,
+      "weight_kg": 68,
+      "height_cm": 172,
+      "temperature_c": 37.2,
+      "pulse_bpm": 118,
+      "age": 26,
+      "sex": "M",
+      "chief_complaint": "acute shortness of breath, wheezing, chest tightness, known asthmatic"
+    },
+    "expected": {
+      "diagnosis": "Asthma",
+      "icd10": "J45",
+      "critical_alert": false,
+      "must_contain_medicine_class": ["bronchodilator"],
+      "must_not_contain": [],
+      "min_confidence": 65,
+      "refer_only": false
+    }
+  },
+  {
+    "test_id": "TC011",
+    "description": "Peptic Ulcer Disease",
+    "input": {
+      "bp_systolic": 120,
+      "bp_diastolic": 78,
+      "blood_sugar": 98,
+      "weight_kg": 72,
+      "height_cm": 175,
+      "temperature_c": 37.0,
+      "pulse_bpm": 76,
+      "age": 40,
+      "sex": "M",
+      "chief_complaint": "burning epigastric pain, worse before meals, nausea, heartburn"
+    },
+    "expected": {
+      "diagnosis": "Peptic Ulcer",
+      "icd10": "K27",
+      "critical_alert": false,
+      "must_contain_medicine_class": ["antacid", "PPI"],
+      "must_not_contain": [],
+      "min_confidence": 60,
+      "refer_only": false
+    }
+  },
+  {
+    "test_id": "TC012",
+    "description": "Gastroenteritis — no dysentery, ciprofloxacin should NOT be given",
+    "input": {
+      "bp_systolic": 108,
+      "bp_diastolic": 68,
+      "blood_sugar": 88,
+      "weight_kg": 58,
+      "height_cm": 165,
+      "temperature_c": 37.6,
+      "pulse_bpm": 92,
+      "age": 24,
+      "sex": "F",
+      "chief_complaint": "loose watery stools, nausea, vomiting, mild abdominal cramps"
+    },
+    "expected": {
+      "diagnosis": "Gastroenteritis",
+      "icd10": "A09",
+      "critical_alert": false,
+      "must_contain_medicine_class": ["ORS", "antiemetic"],
+      "must_not_contain": ["ciprofloxacin"],
+      "min_confidence": 60,
+      "refer_only": false
+    }
+  },
+  {
+    "test_id": "TC013",
+    "description": "Pneumonia CAP",
+    "input": {
+      "bp_systolic": 115,
+      "bp_diastolic": 74,
+      "blood_sugar": 102,
+      "weight_kg": 70,
+      "height_cm": 170,
+      "temperature_c": 39.1,
+      "pulse_bpm": 106,
+      "age": 48,
+      "sex": "M",
+      "chief_complaint": "productive cough with yellowish sputum, fever, chest pain on breathing, shortness of breath"
+    },
+    "expected": {
+      "diagnosis": "Pneumonia",
+      "icd10": "J18.9",
+      "critical_alert": true,
+      "must_contain_medicine_class": ["antibiotic"],
+      "must_not_contain": [],
+      "min_confidence": 60,
+      "refer_only": false
+    }
+  },
+  {
+    "test_id": "TC014",
+    "description": "Anaemia — iron deficiency",
+    "input": {
+      "bp_systolic": 100,
+      "bp_diastolic": 62,
+      "blood_sugar": 85,
+      "weight_kg": 45,
+      "height_cm": 155,
+      "temperature_c": 36.8,
+      "pulse_bpm": 98,
+      "age": 27,
+      "sex": "F",
+      "chief_complaint": "fatigue, pallor, shortness of breath on exertion, pica, heavy menstrual periods"
+    },
+    "expected": {
+      "diagnosis": "Anaemia",
+      "icd10": "D50",
+      "critical_alert": false,
+      "must_contain_medicine_class": ["iron supplement"],
+      "must_not_contain": [],
+      "min_confidence": 60,
+      "refer_only": false
+    }
+  },
+  {
+    "test_id": "TC015",
+    "description": "Conjunctivitis — bacterial",
+    "input": {
+      "bp_systolic": 118,
+      "bp_diastolic": 76,
+      "blood_sugar": 92,
+      "weight_kg": 65,
+      "height_cm": 168,
+      "temperature_c": 36.9,
+      "pulse_bpm": 74,
+      "age": 19,
+      "sex": "F",
+      "chief_complaint": "red eye, purulent discharge, morning crusting, mild eye pain"
+    },
+    "expected": {
+      "diagnosis": "Conjunctivitis",
+      "icd10": "H10",
+      "critical_alert": false,
+      "must_contain_medicine_class": ["antibiotic eye drops"],
+      "must_not_contain": [],
+      "min_confidence": 60,
+      "refer_only": false
+    }
+  },
+  {
+    "test_id": "TC016",
+    "description": "Skin infection — cellulitis",
+    "input": {
+      "bp_systolic": 122,
+      "bp_diastolic": 79,
+      "blood_sugar": 105,
+      "weight_kg": 75,
+      "height_cm": 172,
+      "temperature_c": 38.2,
+      "pulse_bpm": 88,
+      "age": 43,
+      "sex": "M",
+      "chief_complaint": "red swollen warm area on lower leg, pain, spreading redness, small wound history"
+    },
+    "expected": {
+      "diagnosis": "Skin Infection",
+      "icd10": "L03",
+      "critical_alert": false,
+      "must_contain_medicine_class": ["antibiotic"],
+      "must_not_contain": [],
+      "min_confidence": 60,
+      "refer_only": false
+    }
+  },
+  {
+    "test_id": "TC017",
+    "description": "Tachycardia emergency — pulse > 130",
+    "input": {
+      "bp_systolic": 142,
+      "bp_diastolic": 88,
+      "blood_sugar": 108,
+      "weight_kg": 70,
+      "height_cm": 168,
+      "temperature_c": 37.4,
+      "pulse_bpm": 145,
+      "age": 38,
+      "sex": "F",
+      "chief_complaint": "palpitations, chest discomfort, light-headedness"
+    },
+    "expected": {
+      "diagnosis": "Hypertension",
+      "icd10": "I10",
+      "critical_alert": true,
+      "must_contain_medicine_class": [],
+      "must_not_contain": [],
+      "min_confidence": 50,
+      "refer_only": false
+    }
+  },
+  {
+    "test_id": "TC018",
+    "description": "Bradycardia emergency — pulse < 40",
+    "input": {
+      "bp_systolic": 90,
+      "bp_diastolic": 58,
+      "blood_sugar": 95,
+      "weight_kg": 68,
+      "height_cm": 170,
+      "temperature_c": 36.7,
+      "pulse_bpm": 35,
+      "age": 62,
+      "sex": "M",
+      "chief_complaint": "syncope, extreme fatigue, near blackout episodes"
+    },
+    "expected": {
+      "diagnosis": "Hypertension",
+      "icd10": "I10",
+      "critical_alert": true,
+      "must_contain_medicine_class": [],
+      "must_not_contain": [],
+      "min_confidence": 0,
+      "refer_only": false
+    }
+  },
+  {
+    "test_id": "TC019",
+    "description": "Very high fever — temperature > 39.5",
+    "input": {
+      "bp_systolic": 108,
+      "bp_diastolic": 70,
+      "blood_sugar": 88,
+      "weight_kg": 55,
+      "height_cm": 160,
+      "temperature_c": 40.1,
+      "pulse_bpm": 120,
+      "age": 25,
+      "sex": "F",
+      "chief_complaint": "very high fever, severe chills, headache"
+    },
+    "expected": {
+      "diagnosis": "Malaria",
+      "icd10": "B50",
+      "critical_alert": true,
+      "must_contain_medicine_class": [],
+      "must_not_contain": [],
+      "min_confidence": 50,
+      "refer_only": false
+    }
+  },
+  {
+    "test_id": "TC020",
+    "description": "Low confidence — vague complaint, should refer",
+    "input": {
+      "bp_systolic": 118,
+      "bp_diastolic": 76,
+      "blood_sugar": 95,
+      "weight_kg": 70,
+      "height_cm": 172,
+      "temperature_c": 37.0,
+      "pulse_bpm": 76,
+      "age": 44,
+      "sex": "M",
+      "chief_complaint": "generally unwell, mild aches, occasional tiredness"
+    },
+    "expected": {
+      "diagnosis": null,
+      "icd10": null,
+      "critical_alert": false,
+      "must_contain_medicine_class": [],
+      "must_not_contain": [],
+      "min_confidence": 0,
+      "refer_only": true
+    }
+  }
+]
