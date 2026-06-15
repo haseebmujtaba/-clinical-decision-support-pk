@@ -1,11 +1,25 @@
 {
-  "model_name": "CDSS Vitals Classifier",
-  "model_type": "XGBoost Multi-class Classifier",
-  "training_date": "2026-06-12",
-  "total_training_samples": 1924,
-  "train_test_split": "80/20 stratified",
-  "test_accuracy": "65.45%",
-  "features_used": [
+  "version": "2.0",
+  "trained_on": "merged_training_data_expanded.csv",
+  "training_rows_after_cleaning": 26339,
+  "n_classes": 13,
+  "classes": [
+    "Acute Gastroenteritis / Diarrhoea",
+    "Anaemia (iron-deficiency)",
+    "Asthma",
+    "Conjunctivitis (bacterial)",
+    "Coronary Artery Disease",
+    "Hypertension",
+    "Malaria, Plasmodium falciparum (uncomplicated)",
+    "No Diabetes",
+    "No Hypertension",
+    "Peptic Ulcer Disease",
+    "Pneumonia",
+    "Type 2 Diabetes",
+    "Urinary Tract Infection (uncomplicated)"
+  ],
+  "overall_accuracy": 0.7802,
+  "features": [
     "bp_systolic",
     "bp_diastolic",
     "blood_sugar",
@@ -17,55 +31,11 @@
     "age",
     "sex"
   ],
-  "diagnosis_classes": [
-    "Allergic Rhinitis",
-    "Alzheimer's Disease",
-    "Anxiety Disorders",
-    "Asthma",
-    "Bronchitis",
-    "Common Cold",
-    "Coronary Artery Disease",
-    "Crohn's Disease",
-    "Depression",
-    "Diabetes",
-    "Eczema",
-    "Gastroenteritis",
-    "Hypertension",
-    "Hyperthyroidism",
-    "Hypothyroidism",
-    "Influenza",
-    "Kidney Cancer",
-    "Kidney Disease",
-    "Liver Cancer",
-    "Liver Disease",
-    "Migraine",
-    "Multiple Sclerosis",
-    "No Diabetes",
-    "No Hypertension",
-    "Osteoarthritis",
-    "Osteoporosis",
-    "Pancreatitis",
-    "Parkinson's Disease",
-    "Pneumonia",
-    "Psoriasis",
-    "Rheumatoid Arthritis",
-    "Stroke",
-    "Type 2 Diabetes",
-    "Ulcerative Colitis",
-    "Urinary Tract Infection"
-  ],
-  "datasets": [
-    {
-      "name": "Pima Indians Diabetes Database",
-      "rows_contributed": 768
-    },
-    {
-      "name": "Heart Disease UCI Dataset",
-      "rows_contributed": 920
-    },
-    {
-      "name": "Disease Symptom and Patient Profile Dataset",
-      "rows_contributed": 349
-    }
-  ]
+  "sex_encoding": {
+    "M": 1,
+    "F": 0
+  },
+  "max_samples_per_class": 5000,
+  "min_samples_per_class": 50,
+  "compliance_note": "XGBoost classifier for CDSS Phase 2. Used as weak signal only \u2014 not ground truth. Final diagnosis gated by citation_validator.py confidence thresholds."
 }
