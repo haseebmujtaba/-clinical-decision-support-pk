@@ -30,12 +30,12 @@ Patient vitals + chief complaint
         |
         v
 [4] llm_pipeline.py         --> RAG retrieval + LLM reasoning
-    Groq cloud (1-2s) or local Ollama (200s) — switch with LLM_BACKEND
+    THREE BACKENDS: Groq (1-2s), Ollama Mistral (200s), MedGemma (20-50s)
+    Switch backend with LLM_BACKEND setting in llm_pipeline.py
         |
         v
 [5] citation_validator.py   --> citation enforcement, confidence gating,
-                                 drug safety overrides (dengue/NSAID,
-                                 TB referral, conditional antibiotics)
+                                 drug safety overrides, defensive parsing
         |
         v
    Final JSON output (main.py / api_server.py)
@@ -70,31 +70,60 @@ cdss_phase2/
 | `rule_engine.py` | Pure-Python critical alert logic (BP, blood sugar, temp, pulse, BMI thresholds). Runs first, independent of ML/LLM. |
 | `knowledge_base.json` | Starter KB: 15 conditions with real WHO EML 24th List (2025) citations, adopted as Pakistan's NEML (Gazette 20-Oct-2025). |
 | `build_rag_index.py` | Builds a local ChromaDB vector index over the KB using `all-MiniLM-L6-v2` embeddings. |
-| `llm_pipeline.py` | Prompt template, RAG retrieval, LLM call (Groq or Ollama), JSON parsing. |
-| `citation_validator.py` | **Safety gate.** Drops any medicine without a KB citation, applies confidence-based gating (>80% full, 60-80% diagnosis only, <60% refer), and hard-coded clinical safety overrides. |
+| `llm_pipeline.py` | Prompt template, RAG retrieval, LLM call. **THREE backends**: Groq (cloud, 1-2s), Ollama/Mistral (local, 200s), MedGemma (fine-tuned local, 20-50s). Switch via `LLM_BACKEND` setting. Includes auto-generated reasoning and defensive JSON parsing. |
+| `citation_validator.py` | **Safety gate.** Drops any medicine without a KB citation, applies confidence-based gating (>80% full, 60-80% diagnosis only, <60% refer), hard-coded clinical safety overrides, and defensive format normalization for LLM responses. |
 | `main.py` | End-to-end orchestration. Entry point for CLI and API server. |
-| `api_server.py` | FastAPI wrapper exposing `main.run_pipeline()` as a REST endpoint. |
+| `api_server.py` | FastAPI wrapper exposing `main.run_pipeline()` as a REST endpoint (optional). |
 | `data/classifier.pkl`, `data/label_encoder.pkl` | XGBoost classifier + label encoder from Phase 1 training. |
 
 ---
 
-## 3. LLM Backend — Groq (fast) vs Ollama (local/offline)
+## 3. LLM Backend — Groq (fast), Ollama (local), or MedGemma (fine-tuned local)
 
 The LLM backend is controlled by one line at the top of `llm_pipeline.py`:
 
 ```python
-LLM_BACKEND = "groq"    # change to "ollama" for local offline mode
+LLM_BACKEND = "groq"    # change to "ollama" or "medgemma" for local offline mode
 ```
 
-| | Groq | Ollama |
-|---|---|---|
-| Speed | **1-2 seconds** | ~200 seconds |
-| Internet required | Yes | No |
-| Cost | Free tier | Free (local) |
-| Data privacy | Sends to Groq servers | Stays on your machine |
-| Best for | Demo, dev, web team testing | Production (patient data) |
+### Backend Comparison
 
-### API Key security — IMPORTANT
+| | Groq | Ollama (Mistral) | MedGemma (Fine-tuned) |
+|---|---|---|---|
+| Speed | **1-2 seconds** | ~200 seconds | **20-50 seconds** |
+| Internet required | Yes | No | No |
+| Cost | Free tier | Free (local) | Free (local) |
+| Data privacy | Sends to Groq servers | Stays on machine | 100% offline, no data leaves |
+| Model size | 70B (cloud) | 7B | 4B |
+| Training | General | General LLM | Fine-tuned on 450 CDSS clinical cases |
+| Best for | Demo, dev, web team testing | Development | **Production (patient data)** |
+
+### MedGemma Setup (NEW)
+
+MedGemma is a locally fine-tuned 4B model trained on 450 CDSS-specific clinical cases.
+Requires Ollama with the custom model registered:
+
+```bash
+# 1. Install Ollama from https://ollama.com
+# 2. Create the model using your Modelfile:
+ollama create medgemma-cdss-finetuned -f Modelfile
+
+# 3. Start Ollama:
+ollama serve
+
+# 4. Set backend in llm_pipeline.py:
+# LLM_BACKEND = "medgemma"
+
+# 5. Run pipeline as normal
+python run_patient.py
+```
+
+**MedGemma auto-fixes:**
+- Auto-generates "reasoning" field if model omits it (confidence-based fallback)
+- Handles differential diagnoses in any format (dict, string, or mixed)
+- Graceful JSON parsing with safe defaults
+
+### API Key security — IMPORTANT (Groq only)
 **Never hardcode your Groq API key in any file.** Always set it as an
 environment variable in your terminal session before running anything:
 
@@ -114,12 +143,24 @@ set it again each time you open a new terminal.
 
 Get a free key at: https://console.groq.com (no credit card required)
 
+### Alternative: Use a .env file (optional)
+
+Instead of setting environment variables in the terminal each time,
+create a `.env` file in the project root:
+
+```env
+GROQ_API_KEY=gsk_your_key_here
+```
+
+The pipeline automatically loads this file on startup (via `python-dotenv`).
+**IMPORTANT:** Add `.env` to `.gitignore` to avoid committing API keys to version control.
+
 ---
 
 ## 4. One-time setup (per machine)
 
 ```bash
-# 1. Install Python dependencies
+# 1. Install Python dependencies (includes FastAPI, Uvicorn, python-dotenv)
 pip install -r requirements.txt
 
 # 2. Build the RAG search index (run once, or whenever
@@ -127,12 +168,25 @@ pip install -r requirements.txt
 #    model on first run)
 python build_rag_index.py
 
-# 3. (Groq only) Get a free API key at console.groq.com
-#    Then set it in your terminal — see API Key section above.
+# 3. Choose your LLM backend:
 
-# 4. (Ollama only) Install Ollama (https://ollama.com) and pull model
+# --- Option A: Groq (fastest, requires internet + API key) ---
+# Get a free key at console.groq.com, then set it:
+#   Windows: set GROQ_API_KEY=gsk_...
+#   Linux/Mac: export GROQ_API_KEY=gsk_...
+# OR create a .env file with: GROQ_API_KEY=gsk_...
+
+# --- Option B: Ollama (local Mistral 7B, ~200s per request) ---
 ollama pull mistral
 ollama serve
+
+# --- Option C: MedGemma (local fine-tuned 4B, ~20-50s, RECOMMENDED for patient data) ---
+# 3a. Download the MedGemma model and Modelfile
+# 3b. Create the model:
+ollama create medgemma-cdss-finetuned -f Modelfile
+# 3c. Start Ollama:
+ollama serve
+# 3d. In llm_pipeline.py, set: LLM_BACKEND = "medgemma"
 ```
 
 Place `classifier.pkl` and `label_encoder.pkl` into `data/`. If absent,
@@ -255,10 +309,15 @@ same pipeline as the API.
 | Backend | Response time | Notes |
 |---|---|---|
 | Groq (cloud) | **1-2 seconds** | Requires internet + API key |
+| MedGemma (local) | **20-50 seconds** | Fully offline, fine-tuned for CDSS, RECOMMENDED for patient data |
 | Ollama (local) | ~200 seconds | Fully offline, first call slower (model load) |
 
-**For the web app:** use a request timeout of at least 30s for Groq,
-300s for Ollama. Always show a loading state — never assume instant response.
+**For the web app:** 
+- Groq: use a request timeout of at least 30s
+- MedGemma: use a timeout of at least 120s
+- Ollama: use a timeout of at least 300s
+
+Always show a loading state — never assume instant response.
 
 ---
 
@@ -304,6 +363,12 @@ and prints exactly where and why it fails.
 - **TB referral-only**: TB_PULM always refers to national TB programme / DOTS.
   Medicine list suppressed entirely.
 - **Conditional antibiotics**: PUD H. pylori eradication and gastroenteritis
+  (see citation_validator.py for full rules).
+- **Defensive JSON parsing**: 
+  - Auto-generates "reasoning" field if LLM omits it (uses confidence-based heuristics)
+  - Handles `differential_diagnoses` in any format (dicts, strings, or mixed)
+  - Graceful fallback to safe defaults if parsing fails
+- **Format normalization**: All LLM responses automatically normalized to consistent schema before validation
   ciprofloxacin only shown if clinically documented in chief complaint.
 - **URI antibiotic flag**: penicillin/amoxicillin for pharyngitis flagged for
   explicit bacterial-vs-viral physician review.
