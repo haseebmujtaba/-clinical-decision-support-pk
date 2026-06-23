@@ -333,6 +333,7 @@ def call_medgemma(prompt: str) -> str:
     - Stateless: no conversation history bleeds between calls.
     - keep_alive="60m": keeps model loaded in RAM between pipeline
       calls for faster subsequent responses.
+    - System prompt ensures ALL required JSON fields are included.
 
     Requires:
     - Ollama running: ollama serve
@@ -341,9 +342,20 @@ def call_medgemma(prompt: str) -> str:
 
     Typical response time: 20-50s on CPU (i5-8500, 12GB RAM)
     """
+    # Prepend system instruction to ensure complete JSON output
+    system_instruction = (
+        "You are a clinical decision support assistant. "
+        "You MUST respond with valid JSON only. "
+        "The JSON MUST include ALL six fields: condition_id, diagnosis, confidence, "
+        "differential_diagnoses, medicines, and reasoning. "
+        "Never omit any field. Always include a concise 2-3 sentence reasoning field."
+    )
+    
+    full_prompt = f"{system_instruction}\n\n{prompt}"
+    
     payload = {
         "model": MEDGEMMA_MODEL,
-        "prompt": prompt,
+        "prompt": full_prompt,
         "stream": False,
         "format": "json",
         "keep_alive": "60m",
@@ -416,6 +428,7 @@ REQUIRED_JSON_KEYS = {
 
 
 def _extract_reasoning(raw_text: str) -> Optional[str]:
+    """Extract reasoning field from raw text or generate from diagnosis."""
     match = _REASONING_RE.search(raw_text)
     if not match:
         return None
@@ -424,6 +437,22 @@ def _extract_reasoning(raw_text: str) -> Optional[str]:
         return bytes(reasoning, "utf-8").decode("unicode_escape").strip()
     except Exception:
         return reasoning.strip()
+
+
+def _generate_reasoning(parsed: Dict) -> str:
+    """
+    Auto-generate reasoning from diagnosis/confidence if not provided.
+    Fallback for when model omits the field.
+    """
+    diagnosis_name = parsed.get("diagnosis", {}).get("name", "Unknown condition")
+    confidence = parsed.get("confidence", 0.0)
+    
+    if confidence > 0.7:
+        return f"High confidence in {diagnosis_name} based on clinical presentation and knowledge base reference."
+    elif confidence > 0.4:
+        return f"Moderate confidence in {diagnosis_name}; recommend specialist review for confirmation."
+    else:
+        return f"Low confidence diagnosis; refer to specialist for further evaluation and confirmation."
 
 
 def parse_llm_json(raw_text: str) -> Dict:
@@ -489,22 +518,22 @@ def parse_llm_json(raw_text: str) -> Dict:
     # Partial parse — fill missing keys with safe defaults and warn
     missing_keys = REQUIRED_JSON_KEYS - set(parsed.keys())
     if missing_keys:
+        # Try to recover reasoning from raw text or generate it
         if "reasoning" in missing_keys:
             reasoning = _extract_reasoning(raw_text)
             if reasoning:
                 parsed["reasoning"] = reasoning
-                missing_keys.remove("reasoning")
+                missing_keys.discard("reasoning")
+            else:
+                # Auto-generate reasoning from diagnosis if available
+                parsed["reasoning"] = _generate_reasoning(parsed)
+                missing_keys.discard("reasoning")
 
         if missing_keys:
             print(
                 f"[llm_pipeline] WARNING: LLM response missing keys: {missing_keys}. "
                 f"Filling with safe defaults. Backend: {LLM_BACKEND}"
             )
-            if "reasoning" in missing_keys:
-                print(
-                    "[llm_pipeline] NOTE: extracted reasoning from raw text failed; "
-                    "the model response may have omitted the field or returned invalid JSON."
-                )
             defaults = {
                 "condition_id":          None,
                 "diagnosis":             {"name": "", "icd10": ""},

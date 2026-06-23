@@ -252,7 +252,20 @@ def validate_recommendation(
     diagnosis_name = diagnosis.get("name", "")
     confidence = float(llm_output.get("confidence", 0.0) or 0.0)
     differentials = llm_output.get("differential_diagnoses", []) or []
-    differential_names = [d.get("name", "") for d in differentials]
+    
+    # Handle both dict and string formats for differential_diagnoses
+    differential_names = []
+    normalized_differentials = []
+    for d in differentials:
+        if isinstance(d, dict):
+            name = d.get("name", "")
+            normalized_differentials.append(d)
+        else:
+            # Assume it's a string - convert to proper dict format
+            name = str(d) if d else ""
+            normalized_differentials.append({"name": name, "icd10": ""})
+        if name:
+            differential_names.append(name)
 
     # Try to resolve to a KB condition by condition_id first, then by name.
     cond_id = llm_output.get("condition_id")
@@ -267,7 +280,7 @@ def validate_recommendation(
         "critical_alert": rule_engine_alert,
         "diagnosis": diagnosis,
         "confidence": round(confidence, 3),
-        "differential_diagnoses": differentials,
+        "differential_diagnoses": normalized_differentials,
         "medicines": [],
         "treatment_plan_notes": None,
         "action": None,
