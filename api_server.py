@@ -72,6 +72,16 @@ _kb = load_kb()
 # Request / response schemas
 # ---------------------------------------------------------------------
 
+class CustomLLMConfig(BaseModel):
+    """
+    Config schema for custom OpenAI-compatible cloud LLM APIs.
+    """
+    endpoint: Optional[str] = Field(None, example="https://api.openai.com/v1", description="API base URL")
+    apiKey: Optional[str] = Field(None, example="sk-...", description="API key")
+    modelName: Optional[str] = Field(None, example="gpt-4o-mini", description="Model name")
+    provider: Optional[str] = Field("openai", example="openai", description="Preset provider name")
+
+
 class PatientVitals(BaseModel):
     """
     Input schema. Matches rule_engine.VitalsInput fields.
@@ -94,11 +104,14 @@ class PatientVitals(BaseModel):
     llm_backend: Optional[str] = Field(
         "groq",
         example="groq",
-        description="LLM backend to use: 'groq', 'ollama', or 'medgemma'"
+        description="LLM backend to use: 'groq', 'ollama', 'medgemma', or 'custom'"
     )
     chief_complaint: str = Field(
         "", example="Fever with chills and sweating for 3 days, severe headache",
         description="Free-text description of the patient's main complaint"
+    )
+    custom_config: Optional[CustomLLMConfig] = Field(
+        None, description="Optional custom LLM API configuration when llm_backend is 'custom'"
     )
 
     class Config:

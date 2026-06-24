@@ -460,11 +460,75 @@ def _extract_text_from_ollama_response(data) -> str:
         return ""
 
 
-def call_llm(prompt: str, backend: str = LLM_BACKEND) -> str:
+def call_custom_llm(prompt: str, custom_config: Optional[dict]) -> str:
+    """
+    Call a custom OpenAI-compatible API endpoint using the provided custom configuration.
+    """
+    if not custom_config:
+        raise ValueError(
+            "Custom LLM backend selected, but no custom configuration was provided."
+        )
+
+    endpoint = custom_config.get("endpoint")
+    api_key = custom_config.get("apiKey")
+    model_name = custom_config.get("modelName")
+
+    if not endpoint:
+        raise ValueError("Custom LLM API Base URL (endpoint) is required.")
+    if not model_name:
+        raise ValueError("Custom LLM Model Name is required.")
+
+    # Ensure endpoint is correctly formatted.
+    # If the endpoint doesn't end with /chat/completions, append it.
+    endpoint = endpoint.strip()
+    if not endpoint.endswith("/chat/completions"):
+        if endpoint.endswith("/"):
+            endpoint += "chat/completions"
+        else:
+            endpoint += "/chat/completions"
+
+    headers = {
+        "Content-Type": "application/json",
+    }
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+
+    payload = {
+        "model": model_name,
+        "messages": [
+            {
+                "role": "system",
+                "content": (
+                    "You are a clinical decision support assistant. "
+                    "You MUST respond with valid JSON only — no markdown, "
+                    "no commentary, no code fences. Just the raw JSON object. "
+                    "Always include ALL six fields: condition_id, diagnosis, "
+                    "confidence, differential_diagnoses, medicines, reasoning."
+                ),
+            },
+            {"role": "user", "content": prompt},
+        ],
+        "temperature": 0.1,
+    }
+
+    start = time.time()
+    response = requests.post(endpoint, headers=headers, json=payload, timeout=60)
+    if not response.ok:
+        print(f"[llm_pipeline] Custom LLM error {response.status_code}: {response.text}")
+    response.raise_for_status()
+    elapsed = time.time() - start
+
+    data = response.json()
+    raw_text = data["choices"][0]["message"]["content"]
+    print(f"[llm_pipeline] Custom LLM ({model_name}) responded in {elapsed:.1f}s")
+    return raw_text
+
+
+def call_llm(prompt: str, backend: str = LLM_BACKEND, custom_config: Optional[dict] = None) -> str:
     """
     Route to the correct backend based on the selected backend string.
 
-    To switch backend, pass backend = 'groq', 'ollama', or 'medgemma'.
+    To switch backend, pass backend = 'groq', 'ollama', 'medgemma', or 'custom'.
     If no backend is passed, falls back to the default LLM_BACKEND.
     """
     normalized = (backend or LLM_BACKEND or "groq").lower()
@@ -474,10 +538,12 @@ def call_llm(prompt: str, backend: str = LLM_BACKEND) -> str:
         return call_ollama(prompt)
     elif normalized == "medgemma":
         return call_medgemma(prompt)
+    elif normalized == "custom":
+        return call_custom_llm(prompt, custom_config)
     else:
         raise ValueError(
             f"Unknown LLM backend: '{backend}'. "
-            "Valid options: 'groq', 'ollama', 'medgemma'."
+            "Valid options: 'groq', 'ollama', 'medgemma', 'custom'."
         )
 
 
@@ -647,7 +713,8 @@ def run_llm_reasoning(
     retrieved_chunks = retrieve_context(query_text)
     prompt = build_prompt(vitals, classifier_probs, critical_alert, retrieved_chunks)
 
-    raw_text = call_llm(prompt, backend=llm_backend)
+    custom_config = vitals.get("custom_config")
+    raw_text = call_llm(prompt, backend=llm_backend, custom_config=custom_config)
     parsed   = parse_llm_json(raw_text)
     return parsed
 

@@ -272,7 +272,7 @@
     ];
 
     const defaultForm = { age:'', sex:'', chief_complaint:'', bp_systolic:'', bp_diastolic:'', blood_sugar:'', blood_sugar_context:'random', weight_kg:'', height_cm:'', temperature_c:'', pulse_bpm:'' };
-    const defaultCustom = { endpoint: '', apiKey: '', modelName: '', provider: 'openai' };
+    const defaultCustom = { endpoint: '', apiKey: '', modelName: '' };
 
     function validate(form) {
       const e = {};
@@ -295,7 +295,7 @@
     }
 
     // ── Model Selection List ─────────────────────────────────────────────────
-    function ModelList({ activeModel, setActiveModel, customConfig, setCustomConfig }) {
+        function ModelList({ activeModel, setActiveModel, customConfig, setCustomConfig, errors = {}, setErrors = () => {} }) {
       return t('div', { className: 'model-list' },
         MODELS.map(model => {
           const active = model.id === activeModel.id;
@@ -358,47 +358,85 @@
               className: 'custom-api-fields',
               onClick: e => e.stopPropagation(),
             },
-              t('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' } },
-                t('div', null,
-                  t('label', null, 'Provider Preset'),
-                  t('select', {
-                    value: customConfig.provider,
-                    onChange: e => setCustomConfig(p => ({ ...p, provider: e.target.value })),
+              // ── API Key first: paste key → auto-fill the rest ──
+              t('div', null,
+                t('label', null, 'API Key'),
+                t('input', {
+                  type: 'text',
+                  placeholder: 'Paste your API key — URL & model auto-fill',
+                  value: customConfig.apiKey,
+                  style: { fontFamily: 'monospace', letterSpacing: '0.04em' },
+                  onPaste: e => {
+                    // onPaste fires BEFORE the value updates, so we read from clipboardData
+                    const pasted = (e.clipboardData || window.clipboardData).getData('text').trim();
+                    e.preventDefault();
+                    const key = pasted;
+                    let d = null;
+                    if (key.startsWith('AIza'))      d = { endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai', modelName: 'gemini-2.0-flash',              detectedProvider: 'Google Gemini' };
+                    else if (key.startsWith('gsk_')) d = { endpoint: 'https://api.groq.com/openai/v1',                          modelName: 'llama-3.3-70b-versatile',        detectedProvider: 'Groq'           };
+                    else if (key.startsWith('sk-or-'))d= { endpoint: 'https://openrouter.ai/api/v1',                            modelName: 'google/gemini-2.5-flash',         detectedProvider: 'OpenRouter'     };
+                    else if (key.startsWith('sk-ant-'))d={ endpoint: 'https://api.anthropic.com/v1',                            modelName: 'claude-3-5-haiku-20241022',      detectedProvider: 'Anthropic'      };
+                    else if (key.startsWith('sk-'))  d = { endpoint: 'https://api.openai.com/v1',                               modelName: 'gpt-4o-mini',                    detectedProvider: 'OpenAI'         };
+                    if (d) {
+                      setCustomConfig({ apiKey: key, endpoint: d.endpoint, modelName: d.modelName, detectedProvider: d.detectedProvider });
+                    } else {
+                      setCustomConfig(p => ({ ...p, apiKey: key, detectedProvider: null }));
+                    }
                   },
-                    t('option', { value: 'openai' }, 'OpenAI'),
-                    t('option', { value: 'openrouter' }, 'OpenRouter'),
-                    t('option', { value: 'together' }, 'Together AI'),
-                    t('option', { value: 'mistral' }, 'Mistral AI'),
-                    t('option', { value: 'custom' }, 'Custom endpoint'),
-                  )
+                  onChange: e => {
+                    const key = e.target.value;
+                    let d = null;
+                    if (key.startsWith('AIza'))      d = { endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai', modelName: 'gemini-2.0-flash',              detectedProvider: 'Google Gemini' };
+                    else if (key.startsWith('gsk_')) d = { endpoint: 'https://api.groq.com/openai/v1',                          modelName: 'llama-3.3-70b-versatile',        detectedProvider: 'Groq'           };
+                    else if (key.startsWith('sk-or-'))d= { endpoint: 'https://openrouter.ai/api/v1',                            modelName: 'google/gemini-2.5-flash',         detectedProvider: 'OpenRouter'     };
+                    else if (key.startsWith('sk-ant-'))d={ endpoint: 'https://api.anthropic.com/v1',                            modelName: 'claude-3-5-haiku-20241022',      detectedProvider: 'Anthropic'      };
+                    else if (key.startsWith('sk-'))  d = { endpoint: 'https://api.openai.com/v1',                               modelName: 'gpt-4o-mini',                    detectedProvider: 'OpenAI'         };
+                    if (d) {
+                      setCustomConfig({ apiKey: key, endpoint: d.endpoint, modelName: d.modelName, detectedProvider: d.detectedProvider });
+                    } else {
+                      setCustomConfig(p => ({ ...p, apiKey: key, detectedProvider: null }));
+                    }
+                  },
+                }),
+                customConfig.detectedProvider && t('p', {
+                  style: { fontSize: '11px', marginTop: '5px', color: '#2dd4bf', display: 'flex', alignItems: 'center', gap: '5px' }
+                },
+                  t('svg', { xmlns: 'http://www.w3.org/2000/svg', width: 11, height: 11, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round' },
+                    t('path', { d: 'M20 6L9 17l-5-5' })
+                  ),
+                  `Detected: ${customConfig.detectedProvider} — URL & model auto-filled`
+                )
+              ),
+              // ── URL + Model (auto-filled, still editable) ──
+              t('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '2px' } },
+                t('div', null,
+                  t('label', null, 'API Base URL'),
+                  t('input', {
+                    type: 'text',
+                    placeholder: 'https://api.openai.com/v1',
+                    value: customConfig.endpoint,
+                    style: errors.custom_endpoint ? { borderColor: 'rgba(239, 68, 68, 0.6)' } : {},
+                    onChange: e => {
+                      setCustomConfig(p => ({ ...p, endpoint: e.target.value }));
+                      if (errors.custom_endpoint) setErrors(p => ({ ...p, custom_endpoint: undefined }));
+                    },
+                  }),
+                  errors.custom_endpoint && t('p', { className: 'mt-1.5 text-xs text-rose-300 text-left' }, errors.custom_endpoint)
                 ),
                 t('div', null,
                   t('label', null, 'Model Name'),
                   t('input', {
                     type: 'text',
-                    placeholder: 'e.g. gpt-4o-mini',
+                    placeholder: 'e.g. gemini-2.0-flash',
                     value: customConfig.modelName,
-                    onChange: e => setCustomConfig(p => ({ ...p, modelName: e.target.value })),
-                  })
+                    style: errors.custom_modelName ? { borderColor: 'rgba(239, 68, 68, 0.6)' } : {},
+                    onChange: e => {
+                      setCustomConfig(p => ({ ...p, modelName: e.target.value }));
+                      if (errors.custom_modelName) setErrors(p => ({ ...p, custom_modelName: undefined }));
+                    },
+                  }),
+                  errors.custom_modelName && t('p', { className: 'mt-1.5 text-xs text-rose-300 text-left' }, errors.custom_modelName)
                 ),
-              ),
-              t('div', null,
-                t('label', null, 'API Base URL'),
-                t('input', {
-                  type: 'text',
-                  placeholder: 'https://api.openai.com/v1',
-                  value: customConfig.endpoint,
-                  onChange: e => setCustomConfig(p => ({ ...p, endpoint: e.target.value })),
-                })
-              ),
-              t('div', null,
-                t('label', null, 'API Key'),
-                t('input', {
-                  type: 'password',
-                  placeholder: 'sk-…',
-                  value: customConfig.apiKey,
-                  onChange: e => setCustomConfig(p => ({ ...p, apiKey: e.target.value })),
-                })
               ),
             )
           );
@@ -609,7 +647,15 @@
       }
 
       async function submitDiagnosis() {
-        const validation = validate(form);
+        let validation = validate(form);
+        if (activeModel.id === 'custom') {
+          if (!customConfig.endpoint || !customConfig.endpoint.trim()) {
+            validation.custom_endpoint = 'Required.';
+          }
+          if (!customConfig.modelName || !customConfig.modelName.trim()) {
+            validation.custom_modelName = 'Required.';
+          }
+        }
         if (Object.keys(validation).length) { setErrors(validation); return; }
         setLoading(true); setError(null); setResponse(null); setResponseTime(null);
         const payload = {
@@ -680,7 +726,7 @@
             // ── Model selection list ──────────────────────────────────────
             t('div', { className: 'mt-7' },
               t('p', { className: 'text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 mb-4' }, 'Select AI Backend'),
-              t(ModelList, { activeModel, setActiveModel, customConfig, setCustomConfig })
+              t(ModelList, { activeModel, setActiveModel, customConfig, setCustomConfig, errors, setErrors })
             ),
 
             // ── Patient input form ────────────────────────────────────────
