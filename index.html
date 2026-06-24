@@ -131,6 +131,82 @@
       display: block;
       margin-bottom: 4px;
     }
+    .custom-mode-toggle {
+      display: flex;
+      gap: 6px;
+      padding: 4px;
+      border-radius: 12px;
+      background: rgba(5, 12, 30, 0.8);
+      border: 1px solid rgba(51, 65, 85, 0.7);
+      margin-bottom: 4px;
+    }
+    .custom-mode-btn {
+      flex: 1;
+      border: none;
+      border-radius: 9px;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      background: transparent;
+      color: #64748b;
+    }
+    .custom-mode-btn.active {
+      background: rgba(13, 148, 136, 0.18);
+      color: #2dd4bf;
+      box-shadow: 0 0 0 1px rgba(13, 148, 136, 0.25);
+    }
+    .custom-step {
+      border-radius: 12px;
+      border: 1px solid rgba(51, 65, 85, 0.55);
+      background: rgba(5, 12, 30, 0.45);
+      padding: 12px 14px;
+    }
+    .custom-step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      background: rgba(13, 148, 136, 0.15);
+      color: #2dd4bf;
+      font-size: 10px;
+      font-weight: 700;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+    .custom-step.done .custom-step-num {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+    }
+    .custom-action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 9px;
+      border: 1px solid rgba(13, 148, 136, 0.35);
+      background: rgba(13, 148, 136, 0.12);
+      color: #5eead4;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 7px 12px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      white-space: nowrap;
+    }
+    .custom-action-btn:hover:not(:disabled) {
+      background: rgba(13, 148, 136, 0.22);
+      border-color: rgba(13, 148, 136, 0.55);
+    }
+    .custom-action-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .custom-status-ok { color: #34d399; font-size: 11px; }
+    .custom-status-err { color: #f87171; font-size: 11px; }
 
     /* Spinner */
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -175,7 +251,63 @@
       Server:       ({ size, className }) => t(SvgIcon, { size, className, paths: ['M2 2h20v8H2zM2 14h20v8H2z', 'M6 6h.01M6 18h.01'] }),
       Activity:     ({ size, className }) => t(SvgIcon, { size, className, paths: 'M22 12h-4l-3 9L9 3l-3 9H2' }),
       Key:          ({ size, className, style }) => t(SvgIcon, { size, className, style, paths: 'M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4' }),
+      RefreshCw:    ({ size, className, style }) => t(SvgIcon, { size, className, style, paths: ['M21 2v6h-6', 'M3 12a9 9 0 0 1 15-6.7L21 8', 'M3 22v-6h6', 'M21 12a9 9 0 0 1-15 6.7L3 16'] }),
+      CheckCircle:  ({ size, className }) => t(SvgIcon, { size, className, paths: ['M22 11.08V12a10 10 0 1 1-5.93-9.14', 'M22 4L12 14.01l-3-3'] }),
+      XCircle:      ({ size, className }) => t(SvgIcon, { size, className, paths: ['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z', 'M15 9l-6 6M9 9l6 6'] }),
+      Settings:     ({ size, className }) => t(SvgIcon, { size, className, paths: ['M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', 'M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'] }),
+      Wand:         ({ size, className }) => t(SvgIcon, { size, className, paths: ['M15 4V2m0 2a2 2 0 0 1 2 2m-2-2a2 2 0 0 0-2 2', 'M9 20l-5-5 5-5', 'M21 3l-6 6', 'M9 9l6 6'] }),
     };
+
+    const PROVIDERS = [
+      { id: 'groq',       name: 'Groq',           baseUrl: 'https://api.groq.com/openai/v1' },
+      { id: 'openai',     name: 'OpenAI',         baseUrl: 'https://api.openai.com/v1' },
+      { id: 'openrouter', name: 'OpenRouter',     baseUrl: 'https://openrouter.ai/api/v1' },
+      { id: 'together',   name: 'Together AI',    baseUrl: 'https://api.together.xyz/v1' },
+      { id: 'gemini',     name: 'Google Gemini',  baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai' },
+      { id: 'mistral',    name: 'Mistral AI',     baseUrl: 'https://api.mistral.ai/v1' },
+      { id: 'ollama',     name: 'Ollama (Local)', baseUrl: 'http://localhost:11434/v1' },
+    ];
+
+    function normalizeBaseUrl(url) {
+      return (url || '').trim().replace(/\/+$/, '');
+    }
+
+    function parseModelsResponse(data) {
+      const list = data?.data || data?.models || [];
+      return list
+        .map(m => (typeof m === 'string' ? m : (m.id || m.name || '')))
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b));
+    }
+
+    async function queryProviderModels(baseUrl, apiKey) {
+      const url = `${normalizeBaseUrl(baseUrl)}/models`;
+      const res = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!res.ok) {
+        let detail = `HTTP ${res.status}`;
+        try {
+          const body = await res.json();
+          detail = body.error?.message || body.detail || detail;
+        } catch (_) {
+          detail = (await res.text()).slice(0, 120) || detail;
+        }
+        if (res.status === 401 || res.status === 403) throw new Error('Invalid API key or unauthorized.');
+        throw new Error(detail);
+      }
+      return parseModelsResponse(await res.json());
+    }
+
+    function corsHint(err) {
+      if (err?.message?.includes('Failed to fetch') || err?.name === 'TypeError') {
+        return 'Browser blocked the request (CORS). Use Manual mode to enter settings, or proxy via your API server.';
+      }
+      return err?.message || 'Request failed.';
+    }
 
     // ── Model definitions (reordered: MedGemma=1, Groq=2, Ollama=3, Custom=4) ──
     const MODELS = [
@@ -246,7 +378,7 @@
         model: 'Your choice',
         speed: 'Varies',
         type: 'Custom · Configurable',
-        description: 'Connect any OpenAI-compatible API endpoint. Bring your own key and model — Mistral, Together, OpenRouter, etc.',
+        description: 'Connect any OpenAI-compatible API. Use Guided Setup (provider → validate key → fetch models) or Manual Entry for custom endpoints.',
         icon: 'Key',
         iconBg: 'rgba(139,92,246,0.16)',
         iconColor: '#c084fc',
@@ -272,7 +404,15 @@
     ];
 
     const defaultForm = { age:'', sex:'', chief_complaint:'', bp_systolic:'', bp_diastolic:'', blood_sugar:'', blood_sugar_context:'random', weight_kg:'', height_cm:'', temperature_c:'', pulse_bpm:'' };
-    const defaultCustom = { endpoint: '', apiKey: '', modelName: '' };
+    const defaultCustom = {
+      mode: 'guided',
+      provider: 'groq',
+      endpoint: 'https://api.groq.com/openai/v1',
+      apiKey: '',
+      modelName: '',
+      models: [],
+      keyValidated: false,
+    };
 
     function validate(form) {
       const e = {};
@@ -294,6 +434,361 @@
       return { label: action || 'Unknown', color: 'bg-slate-700 text-slate-200' };
     }
 
+    // ── Custom LLM configuration (guided + manual) ─────────────────────────
+    function CustomConfigPanel({ customConfig, setCustomConfig, errors, setErrors }) {
+      const [keyValidating, setKeyValidating] = useState(false);
+      const [fetchingModels, setFetchingModels] = useState(false);
+      const [validateMsg, setValidateMsg] = useState(null);
+      const [fetchMsg, setFetchMsg] = useState(null);
+
+      const mode = customConfig.mode || 'guided';
+      const selectedProvider = PROVIDERS.find(p => p.id === customConfig.provider) || PROVIDERS[0];
+
+      function switchMode(nextMode) {
+        setCustomConfig(p => {
+          if (nextMode === 'guided') {
+            const prov = PROVIDERS.find(x => x.id === (p.provider || 'groq')) || PROVIDERS[0];
+            return { ...p, mode: nextMode, endpoint: prov.baseUrl };
+          }
+          return { ...p, mode: nextMode };
+        });
+        setValidateMsg(null);
+        setFetchMsg(null);
+      }
+
+      function onProviderChange(providerId) {
+        const prov = PROVIDERS.find(p => p.id === providerId) || PROVIDERS[0];
+        setCustomConfig(p => ({
+          ...p,
+          provider: prov.id,
+          endpoint: prov.baseUrl,
+          modelName: '',
+          models: [],
+          keyValidated: false,
+        }));
+        setValidateMsg(null);
+        setFetchMsg(null);
+        if (errors.custom_endpoint) setErrors(e => ({ ...e, custom_endpoint: undefined }));
+      }
+
+      function onApiKeyChange(value) {
+        setCustomConfig(p => ({ ...p, apiKey: value, keyValidated: false, models: [], modelName: '' }));
+        setValidateMsg(null);
+        setFetchMsg(null);
+        if (errors.custom_apiKey) setErrors(e => ({ ...e, custom_apiKey: undefined }));
+      }
+
+      async function validateKey() {
+        const baseUrl = mode === 'guided' ? selectedProvider.baseUrl : customConfig.endpoint;
+        const key = customConfig.apiKey?.trim();
+        if (!key) {
+          setErrors(e => ({ ...e, custom_apiKey: 'API key is required.' }));
+          return;
+        }
+        if (mode === 'manual' && !baseUrl?.trim()) {
+          setErrors(e => ({ ...e, custom_endpoint: 'Base URL is required.' }));
+          return;
+        }
+        setKeyValidating(true);
+        setValidateMsg(null);
+        try {
+          await queryProviderModels(baseUrl, key);
+          setCustomConfig(p => ({ ...p, keyValidated: true, endpoint: normalizeBaseUrl(baseUrl) }));
+          setValidateMsg({ ok: true, text: 'API key validated successfully.' });
+        } catch (err) {
+          setCustomConfig(p => ({ ...p, keyValidated: false }));
+          setValidateMsg({ ok: false, text: corsHint(err) });
+        } finally {
+          setKeyValidating(false);
+        }
+      }
+
+      async function fetchModels() {
+        const baseUrl = mode === 'guided' ? customConfig.endpoint || selectedProvider.baseUrl : customConfig.endpoint;
+        const key = customConfig.apiKey?.trim();
+        if (!key) {
+          setErrors(e => ({ ...e, custom_apiKey: 'API key is required.' }));
+          return;
+        }
+        setFetchingModels(true);
+        setFetchMsg(null);
+        try {
+          const models = await queryProviderModels(baseUrl, key);
+          if (!models.length) throw new Error('No models returned by this provider.');
+          setCustomConfig(p => ({
+            ...p,
+            models,
+            endpoint: normalizeBaseUrl(baseUrl),
+            keyValidated: true,
+            modelName: p.modelName && models.includes(p.modelName) ? p.modelName : models[0],
+          }));
+          setFetchMsg({ ok: true, text: `${models.length} model(s) loaded.` });
+          if (errors.custom_modelName) setErrors(e => ({ ...e, custom_modelName: undefined }));
+        } catch (err) {
+          setFetchMsg({ ok: false, text: corsHint(err) });
+        } finally {
+          setFetchingModels(false);
+        }
+      }
+
+      const step1Done = !!customConfig.provider;
+      const step2Done = customConfig.keyValidated;
+      const step3Done = (customConfig.models || []).length > 0;
+      const step4Done = !!customConfig.modelName;
+
+      return t('div', { className: 'custom-api-fields', onClick: e => e.stopPropagation() },
+        // Mode toggle
+        t('div', { className: 'custom-mode-toggle' },
+          t('button', {
+            type: 'button',
+            className: `custom-mode-btn${mode === 'guided' ? ' active' : ''}`,
+            onClick: () => switchMode('guided'),
+          },
+            t('span', { style: { display: 'inline-flex', alignItems: 'center', gap: '5px' } },
+              t(Icons.Wand, { size: 12 }),
+              'Guided Setup'
+            )
+          ),
+          t('button', {
+            type: 'button',
+            className: `custom-mode-btn${mode === 'manual' ? ' active' : ''}`,
+            onClick: () => switchMode('manual'),
+          },
+            t('span', { style: { display: 'inline-flex', alignItems: 'center', gap: '5px' } },
+              t(Icons.Settings, { size: 12 }),
+              'Manual Entry'
+            )
+          )
+        ),
+
+        mode === 'guided'
+          ? t('div', { style: { display: 'flex', flexDirection: 'column', gap: '10px' } },
+              // Step 1 — Provider
+              t('div', { className: `custom-step${step1Done ? ' done' : ''}` },
+                t('div', { style: { display: 'flex', alignItems: 'center', marginBottom: '8px' } },
+                  t('span', { className: 'custom-step-num' }, '1'),
+                  t('span', { style: { fontSize: '12px', fontWeight: '600', color: '#cbd5e1' } }, 'Select Provider')
+                ),
+                t('select', {
+                  value: customConfig.provider || 'groq',
+                  onChange: e => onProviderChange(e.target.value),
+                },
+                  PROVIDERS.map(p => t('option', { key: p.id, value: p.id }, p.name))
+                ),
+                t('p', {
+                  style: { fontSize: '11px', color: '#64748b', marginTop: '6px', fontFamily: 'monospace' }
+                }, `Base URL: ${selectedProvider.baseUrl}`)
+              ),
+
+              // Step 2 — API Key + Validate
+              t('div', { className: `custom-step${step2Done ? ' done' : ''}` },
+                t('div', { style: { display: 'flex', alignItems: 'center', marginBottom: '8px' } },
+                  t('span', { className: 'custom-step-num' }, '2'),
+                  t('span', { style: { fontSize: '12px', fontWeight: '600', color: '#cbd5e1' } }, 'Enter API Key')
+                ),
+                t('div', { style: { display: 'flex', gap: '8px', alignItems: 'flex-start' } },
+                  t('div', { style: { flex: 1 } },
+                    t('input', {
+                      type: 'password',
+                      placeholder: 'Paste your API key',
+                      value: customConfig.apiKey,
+                      style: {
+                        fontFamily: 'monospace',
+                        letterSpacing: '0.04em',
+                        ...(errors.custom_apiKey ? { borderColor: 'rgba(239, 68, 68, 0.6)' } : {}),
+                      },
+                      onChange: e => onApiKeyChange(e.target.value),
+                    }),
+                    errors.custom_apiKey && t('p', { className: 'mt-1.5 text-xs text-rose-300 text-left' }, errors.custom_apiKey)
+                  ),
+                  t('button', {
+                    type: 'button',
+                    className: 'custom-action-btn',
+                    disabled: keyValidating || !customConfig.apiKey?.trim(),
+                    onClick: validateKey,
+                  },
+                    keyValidating
+                      ? t('span', { className: 'spin inline-block w-3.5 h-3.5 rounded-full border-2 border-teal-300/30 border-t-teal-300' })
+                      : t(Icons.CheckCircle, { size: 13 }),
+                    keyValidating ? 'Validating…' : 'Validate Key'
+                  )
+                ),
+                validateMsg && t('p', {
+                  className: validateMsg.ok ? 'custom-status-ok' : 'custom-status-err',
+                  style: { marginTop: '6px', display: 'flex', alignItems: 'center', gap: '5px' }
+                },
+                  validateMsg.ok
+                    ? t(Icons.CheckCircle, { size: 12 })
+                    : t(Icons.XCircle, { size: 12 }),
+                  validateMsg.text
+                )
+              ),
+
+              // Step 3 — Fetch Models
+              t('div', { className: `custom-step${step3Done ? ' done' : ''}` },
+                t('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '8px' } },
+                  t('div', { style: { display: 'flex', alignItems: 'center' } },
+                    t('span', { className: 'custom-step-num' }, '3'),
+                    t('span', { style: { fontSize: '12px', fontWeight: '600', color: '#cbd5e1' } }, 'Fetch Models')
+                  ),
+                  t('button', {
+                    type: 'button',
+                    className: 'custom-action-btn',
+                    disabled: fetchingModels || !customConfig.apiKey?.trim(),
+                    onClick: fetchModels,
+                  },
+                    fetchingModels
+                      ? t('span', { className: 'spin inline-block w-3.5 h-3.5 rounded-full border-2 border-teal-300/30 border-t-teal-300' })
+                      : t(Icons.RefreshCw, { size: 13 }),
+                    fetchingModels ? 'Fetching…' : 'Fetch Models'
+                  )
+                ),
+                fetchMsg && t('p', {
+                  className: fetchMsg.ok ? 'custom-status-ok' : 'custom-status-err',
+                  style: { display: 'flex', alignItems: 'center', gap: '5px' }
+                },
+                  fetchMsg.ok ? t(Icons.CheckCircle, { size: 12 }) : t(Icons.XCircle, { size: 12 }),
+                  fetchMsg.text
+                ),
+                !fetchMsg && !step3Done && t('p', { style: { fontSize: '11px', color: '#64748b' } },
+                  'Queries the provider API for valid model names.'
+                )
+              ),
+
+              // Step 4 — Select Model
+              t('div', { className: `custom-step${step4Done ? ' done' : ''}` },
+                t('div', { style: { display: 'flex', alignItems: 'center', marginBottom: '8px' } },
+                  t('span', { className: 'custom-step-num' }, '4'),
+                  t('span', { style: { fontSize: '12px', fontWeight: '600', color: '#cbd5e1' } }, 'Select Model')
+                ),
+                (customConfig.models || []).length > 0
+                  ? t('select', {
+                      value: customConfig.modelName || '',
+                      style: errors.custom_modelName ? { borderColor: 'rgba(239, 68, 68, 0.6)' } : {},
+                      onChange: e => {
+                        setCustomConfig(p => ({ ...p, modelName: e.target.value }));
+                        if (errors.custom_modelName) setErrors(err => ({ ...err, custom_modelName: undefined }));
+                      },
+                    },
+                      t('option', { value: '' }, 'Choose a model…'),
+                      customConfig.models.map(m => t('option', { key: m, value: m }, m))
+                    )
+                  : t('input', {
+                      type: 'text',
+                      disabled: true,
+                      placeholder: 'Fetch models first, or switch to Manual Entry',
+                      value: '',
+                    }),
+                errors.custom_modelName && t('p', { className: 'mt-1.5 text-xs text-rose-300 text-left' }, errors.custom_modelName)
+              )
+            )
+
+          // ── Manual mode ──
+          : t('div', { style: { display: 'flex', flexDirection: 'column', gap: '10px' } },
+              t('p', { style: { fontSize: '11px', color: '#64748b', lineHeight: '1.5', margin: '0 0 2px' } },
+                'Enter any OpenAI-compatible endpoint, API key, and model name directly.'
+              ),
+              t('div', null,
+                t('label', null, 'API Base URL'),
+                t('input', {
+                  type: 'text',
+                  placeholder: 'https://api.example.com/v1',
+                  value: customConfig.endpoint,
+                  style: errors.custom_endpoint ? { borderColor: 'rgba(239, 68, 68, 0.6)' } : {},
+                  onChange: e => {
+                    setCustomConfig(p => ({ ...p, endpoint: e.target.value, keyValidated: false, models: [] }));
+                    if (errors.custom_endpoint) setErrors(err => ({ ...err, custom_endpoint: undefined }));
+                  },
+                }),
+                errors.custom_endpoint && t('p', { className: 'mt-1.5 text-xs text-rose-300 text-left' }, errors.custom_endpoint)
+              ),
+              t('div', null,
+                t('label', null, 'API Key'),
+                t('div', { style: { display: 'flex', gap: '8px', alignItems: 'flex-start' } },
+                  t('div', { style: { flex: 1 } },
+                    t('input', {
+                      type: 'password',
+                      placeholder: 'Your API key',
+                      value: customConfig.apiKey,
+                      style: {
+                        fontFamily: 'monospace',
+                        ...(errors.custom_apiKey ? { borderColor: 'rgba(239, 68, 68, 0.6)' } : {}),
+                      },
+                      onChange: e => onApiKeyChange(e.target.value),
+                    }),
+                    errors.custom_apiKey && t('p', { className: 'mt-1.5 text-xs text-rose-300 text-left' }, errors.custom_apiKey)
+                  ),
+                  t('button', {
+                    type: 'button',
+                    className: 'custom-action-btn',
+                    disabled: keyValidating || !customConfig.apiKey?.trim() || !customConfig.endpoint?.trim(),
+                    onClick: validateKey,
+                  },
+                    keyValidating
+                      ? t('span', { className: 'spin inline-block w-3.5 h-3.5 rounded-full border-2 border-teal-300/30 border-t-teal-300' })
+                      : t(Icons.CheckCircle, { size: 13 }),
+                    'Test Key'
+                  )
+                ),
+                validateMsg && t('p', {
+                  className: validateMsg.ok ? 'custom-status-ok' : 'custom-status-err',
+                  style: { marginTop: '6px', display: 'flex', alignItems: 'center', gap: '5px' }
+                },
+                  validateMsg.ok ? t(Icons.CheckCircle, { size: 12 }) : t(Icons.XCircle, { size: 12 }),
+                  validateMsg.text
+                )
+              ),
+              t('div', null,
+                t('label', null, 'Model Name'),
+                t('input', {
+                  type: 'text',
+                  placeholder: 'e.g. llama-3.3-70b-versatile',
+                  value: customConfig.modelName,
+                  style: errors.custom_modelName ? { borderColor: 'rgba(239, 68, 68, 0.6)' } : {},
+                  onChange: e => {
+                    setCustomConfig(p => ({ ...p, modelName: e.target.value }));
+                    if (errors.custom_modelName) setErrors(err => ({ ...err, custom_modelName: undefined }));
+                  },
+                }),
+                errors.custom_modelName && t('p', { className: 'mt-1.5 text-xs text-rose-300 text-left' }, errors.custom_modelName)
+              ),
+              t('div', { style: { display: 'flex', justifyContent: 'flex-end' } },
+                t('button', {
+                  type: 'button',
+                  className: 'custom-action-btn',
+                  disabled: fetchingModels || !customConfig.apiKey?.trim() || !customConfig.endpoint?.trim(),
+                  onClick: fetchModels,
+                },
+                  fetchingModels
+                    ? t('span', { className: 'spin inline-block w-3.5 h-3.5 rounded-full border-2 border-teal-300/30 border-t-teal-300' })
+                    : t(Icons.RefreshCw, { size: 13 }),
+                  fetchingModels ? 'Fetching…' : 'Fetch Models (optional)'
+                )
+              ),
+              fetchMsg && t('p', {
+                className: fetchMsg.ok ? 'custom-status-ok' : 'custom-status-err',
+                style: { display: 'flex', alignItems: 'center', gap: '5px' }
+              },
+                fetchMsg.ok ? t(Icons.CheckCircle, { size: 12 }) : t(Icons.XCircle, { size: 12 }),
+                fetchMsg.text
+              ),
+              (customConfig.models || []).length > 0 && t('div', null,
+                t('label', null, 'Or pick from fetched list'),
+                t('select', {
+                  value: customConfig.modelName || '',
+                  onChange: e => {
+                    setCustomConfig(p => ({ ...p, modelName: e.target.value }));
+                    if (errors.custom_modelName) setErrors(err => ({ ...err, custom_modelName: undefined }));
+                  },
+                },
+                  t('option', { value: '' }, 'Choose a model…'),
+                  customConfig.models.map(m => t('option', { key: m, value: m }, m))
+                )
+              )
+            )
+      );
+    }
+
     // ── Model Selection List ─────────────────────────────────────────────────
         function ModelList({ activeModel, setActiveModel, customConfig, setCustomConfig, errors = {}, setErrors = () => {} }) {
       return t('div', { className: 'model-list' },
@@ -302,13 +797,19 @@
           const IconComp = Icons[model.icon];
           const isCustom = model.id === 'custom';
 
-          return t('button', {
+          return t('div', {
             key: model.id,
-            type: 'button',
-            onClick: () => setActiveModel(model),
             className: `model-card${active ? ' active' : ''}`,
             style: { display: 'flex', flexDirection: 'column', alignItems: 'stretch' },
           },
+            // Top row: clickable to select
+            t('div', {
+              role: 'button',
+              tabIndex: 0,
+              onClick: () => setActiveModel(model),
+              onKeyDown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveModel(model); } },
+              style: { display: 'flex', flexDirection: 'column', width: '100%', cursor: 'pointer' },
+            },
             // Top row: num + icon + body + badge + check
             t('div', { style: { display: 'flex', alignItems: 'center', gap: '14px', width: '100%' } },
               // Number
@@ -351,94 +852,16 @@
             // Description (shown always, below the row)
             t('p', { style: { fontSize: '12px', color: '#64748b', lineHeight: '1.6', marginTop: '10px', paddingLeft: '102px', textAlign: 'left' } },
               model.description
+            )
             ),
 
             // Custom API fields — shown only when this card is active
-            isCustom && active && t('div', {
-              className: 'custom-api-fields',
-              onClick: e => e.stopPropagation(),
-            },
-              // ── API Key first: paste key → auto-fill the rest ──
-              t('div', null,
-                t('label', null, 'API Key'),
-                t('input', {
-                  type: 'text',
-                  placeholder: 'Paste your API key — URL & model auto-fill',
-                  value: customConfig.apiKey,
-                  style: { fontFamily: 'monospace', letterSpacing: '0.04em' },
-                  onPaste: e => {
-                    // onPaste fires BEFORE the value updates, so we read from clipboardData
-                    const pasted = (e.clipboardData || window.clipboardData).getData('text').trim();
-                    e.preventDefault();
-                    const key = pasted;
-                    let d = null;
-                    if (key.startsWith('AIza'))      d = { endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai', modelName: 'gemini-2.0-flash',              detectedProvider: 'Google Gemini' };
-                    else if (key.startsWith('gsk_')) d = { endpoint: 'https://api.groq.com/openai/v1',                          modelName: 'llama-3.3-70b-versatile',        detectedProvider: 'Groq'           };
-                    else if (key.startsWith('sk-or-'))d= { endpoint: 'https://openrouter.ai/api/v1',                            modelName: 'google/gemini-2.5-flash',         detectedProvider: 'OpenRouter'     };
-                    else if (key.startsWith('sk-ant-'))d={ endpoint: 'https://api.anthropic.com/v1',                            modelName: 'claude-3-5-haiku-20241022',      detectedProvider: 'Anthropic'      };
-                    else if (key.startsWith('sk-'))  d = { endpoint: 'https://api.openai.com/v1',                               modelName: 'gpt-4o-mini',                    detectedProvider: 'OpenAI'         };
-                    if (d) {
-                      setCustomConfig({ apiKey: key, endpoint: d.endpoint, modelName: d.modelName, detectedProvider: d.detectedProvider });
-                    } else {
-                      setCustomConfig(p => ({ ...p, apiKey: key, detectedProvider: null }));
-                    }
-                  },
-                  onChange: e => {
-                    const key = e.target.value;
-                    let d = null;
-                    if (key.startsWith('AIza'))      d = { endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai', modelName: 'gemini-2.0-flash',              detectedProvider: 'Google Gemini' };
-                    else if (key.startsWith('gsk_')) d = { endpoint: 'https://api.groq.com/openai/v1',                          modelName: 'llama-3.3-70b-versatile',        detectedProvider: 'Groq'           };
-                    else if (key.startsWith('sk-or-'))d= { endpoint: 'https://openrouter.ai/api/v1',                            modelName: 'google/gemini-2.5-flash',         detectedProvider: 'OpenRouter'     };
-                    else if (key.startsWith('sk-ant-'))d={ endpoint: 'https://api.anthropic.com/v1',                            modelName: 'claude-3-5-haiku-20241022',      detectedProvider: 'Anthropic'      };
-                    else if (key.startsWith('sk-'))  d = { endpoint: 'https://api.openai.com/v1',                               modelName: 'gpt-4o-mini',                    detectedProvider: 'OpenAI'         };
-                    if (d) {
-                      setCustomConfig({ apiKey: key, endpoint: d.endpoint, modelName: d.modelName, detectedProvider: d.detectedProvider });
-                    } else {
-                      setCustomConfig(p => ({ ...p, apiKey: key, detectedProvider: null }));
-                    }
-                  },
-                }),
-                customConfig.detectedProvider && t('p', {
-                  style: { fontSize: '11px', marginTop: '5px', color: '#2dd4bf', display: 'flex', alignItems: 'center', gap: '5px' }
-                },
-                  t('svg', { xmlns: 'http://www.w3.org/2000/svg', width: 11, height: 11, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round' },
-                    t('path', { d: 'M20 6L9 17l-5-5' })
-                  ),
-                  `Detected: ${customConfig.detectedProvider} — URL & model auto-filled`
-                )
-              ),
-              // ── URL + Model (auto-filled, still editable) ──
-              t('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '2px' } },
-                t('div', null,
-                  t('label', null, 'API Base URL'),
-                  t('input', {
-                    type: 'text',
-                    placeholder: 'https://api.openai.com/v1',
-                    value: customConfig.endpoint,
-                    style: errors.custom_endpoint ? { borderColor: 'rgba(239, 68, 68, 0.6)' } : {},
-                    onChange: e => {
-                      setCustomConfig(p => ({ ...p, endpoint: e.target.value }));
-                      if (errors.custom_endpoint) setErrors(p => ({ ...p, custom_endpoint: undefined }));
-                    },
-                  }),
-                  errors.custom_endpoint && t('p', { className: 'mt-1.5 text-xs text-rose-300 text-left' }, errors.custom_endpoint)
-                ),
-                t('div', null,
-                  t('label', null, 'Model Name'),
-                  t('input', {
-                    type: 'text',
-                    placeholder: 'e.g. gemini-2.0-flash',
-                    value: customConfig.modelName,
-                    style: errors.custom_modelName ? { borderColor: 'rgba(239, 68, 68, 0.6)' } : {},
-                    onChange: e => {
-                      setCustomConfig(p => ({ ...p, modelName: e.target.value }));
-                      if (errors.custom_modelName) setErrors(p => ({ ...p, custom_modelName: undefined }));
-                    },
-                  }),
-                  errors.custom_modelName && t('p', { className: 'mt-1.5 text-xs text-rose-300 text-left' }, errors.custom_modelName)
-                ),
-              ),
-            )
+            isCustom && active && t(CustomConfigPanel, {
+              customConfig,
+              setCustomConfig,
+              errors,
+              setErrors,
+            })
           );
         })
       );
@@ -649,11 +1072,17 @@
       async function submitDiagnosis() {
         let validation = validate(form);
         if (activeModel.id === 'custom') {
-          if (!customConfig.endpoint || !customConfig.endpoint.trim()) {
-            validation.custom_endpoint = 'Required.';
+          const endpoint = customConfig.mode === 'guided'
+            ? (customConfig.endpoint || PROVIDERS.find(p => p.id === customConfig.provider)?.baseUrl)
+            : customConfig.endpoint;
+          if (!endpoint || !endpoint.trim()) {
+            validation.custom_endpoint = 'Base URL is required.';
+          }
+          if (!customConfig.apiKey || !customConfig.apiKey.trim()) {
+            validation.custom_apiKey = 'API key is required.';
           }
           if (!customConfig.modelName || !customConfig.modelName.trim()) {
-            validation.custom_modelName = 'Required.';
+            validation.custom_modelName = 'Model is required.';
           }
         }
         if (Object.keys(validation).length) { setErrors(validation); return; }
@@ -671,7 +1100,19 @@
           pulse_bpm: form.pulse_bpm === '' ? null : Number(form.pulse_bpm),
           chief_complaint: form.chief_complaint,
           llm_backend: activeModel.id,
-          ...(activeModel.id === 'custom' ? { custom_config: customConfig } : {}),
+          ...(activeModel.id === 'custom' ? {
+            custom_config: {
+              endpoint: normalizeBaseUrl(
+                customConfig.mode === 'guided'
+                  ? (customConfig.endpoint || PROVIDERS.find(p => p.id === customConfig.provider)?.baseUrl)
+                  : customConfig.endpoint
+              ),
+              apiKey: customConfig.apiKey.trim(),
+              modelName: customConfig.modelName.trim(),
+              provider: customConfig.provider,
+              mode: customConfig.mode,
+            },
+          } : {}),
         };
         const start = performance.now();
         try {
