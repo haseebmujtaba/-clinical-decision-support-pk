@@ -132,14 +132,19 @@ class Classifier:
 # Pipeline orchestration
 # ---------------------------------------------------------------------
 
-def run_pipeline(patient: dict, classifier: Classifier, kb: dict) -> dict:
+def run_pipeline(
+    patient: dict,
+    classifier: Classifier,
+    kb: dict,
+    llm_backend: str | None = None,
+) -> dict:
     """
     Run the full CDSS pipeline for a single patient record.
 
     `patient` is a dict matching VitalsInput's fields:
         bp_systolic, bp_diastolic, blood_sugar, blood_sugar_context,
         weight_kg, height_cm, temperature_c, pulse_bpm, age, sex,
-        chief_complaint
+        chief_complaint, llm_backend
 
     Returns the final JSON-ready dict.
     """
@@ -162,8 +167,13 @@ def run_pipeline(patient: dict, classifier: Classifier, kb: dict) -> dict:
     # --- Step 2: ML classifier (structured vitals only) ---
     classifier_probs = classifier.predict_proba(patient)
 
-    # --- Step 3: RAG retrieval + LLM reasoning (Mistral via Ollama) ---
-    llm_output = run_llm_reasoning(patient, classifier_probs, critical_alert)
+    # --- Step 3: RAG retrieval + LLM reasoning ---
+    llm_output = run_llm_reasoning(
+        patient,
+        classifier_probs,
+        critical_alert,
+        llm_backend=llm_backend or patient.get("llm_backend"),
+    )
 
     # --- Step 4 + 5: Citation validation, drug safety, confidence
     #     gating -> final JSON ---

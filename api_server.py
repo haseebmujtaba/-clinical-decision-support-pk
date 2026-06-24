@@ -33,7 +33,7 @@ IMPORTANT (read before integrating):
   build_rag_index.py before starting this server.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import joblib  # noqa: F401  (imported for clearer dependency surfacing)
 from fastapi import FastAPI, HTTPException
@@ -91,6 +91,11 @@ class PatientVitals(BaseModel):
     height_cm: Optional[float] = Field(None, example=162, description="Height in cm")
     temperature_c: Optional[float] = Field(None, example=39.2, description="Body temperature, Celsius")
     pulse_bpm: Optional[float] = Field(None, example=102, description="Pulse, beats per minute")
+    llm_backend: Optional[str] = Field(
+        "groq",
+        example="groq",
+        description="LLM backend to use: 'groq', 'ollama', or 'medgemma'"
+    )
     chief_complaint: str = Field(
         "", example="Fever with chills and sweating for 3 days, severe headache",
         description="Free-text description of the patient's main complaint"
@@ -130,7 +135,7 @@ class Medicine(BaseModel):
     name: str
     dosage_form: str
     dose_instruction: str
-    tier: int
+    tier: Union[int, List[int]]
     citation: str
     drap_check: dict
     flag: Optional[str] = None
@@ -202,7 +207,12 @@ def diagnose(patient: PatientVitals):
     indicator and use a generous request timeout (recommend >= 300s).
     """
     try:
-        result = run_pipeline(patient.model_dump(), _classifier, _kb)
+        result = run_pipeline(
+            patient.model_dump(),
+            _classifier,
+            _kb,
+            llm_backend=patient.llm_backend,
+        )
     except Exception as e:
         raise HTTPException(
             status_code=500,

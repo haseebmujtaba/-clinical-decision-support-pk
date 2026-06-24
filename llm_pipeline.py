@@ -318,8 +318,10 @@ def call_ollama(prompt: str, model: str = OLLAMA_MODEL, timeout: int = 600) -> s
     elapsed = time.time() - start
 
     data = response.json()
-    raw_text = data.get("response", "")
-    print(f"[llm_pipeline] Ollama ({model}) responded in {elapsed:.1f}s")
+    raw_text = _extract_text_from_ollama_response(data)
+    print(f"[llm_pipeline] Ollama ({model}) responded in {elapsed:.1f}s; extracted {len(raw_text)} chars")
+    if not raw_text:
+        print(f"[llm_pipeline] Ollama raw response (truncated): {str(data)[:500]}")
     return raw_text
 
 
@@ -382,29 +384,99 @@ def call_medgemma(prompt: str) -> str:
         )
 
     elapsed = time.time() - start
-    raw_text = response.json().get("response", "")
-    print(f"[llm_pipeline] MedGemma ({MEDGEMMA_MODEL}) responded in {elapsed:.1f}s")
+    data = response.json()
+    raw_text = _extract_text_from_ollama_response(data)
+    print(f"[llm_pipeline] MedGemma ({MEDGEMMA_MODEL}) responded in {elapsed:.1f}s; extracted {len(raw_text)} chars")
+    if not raw_text:
+        print(f"[llm_pipeline] MedGemma raw response (truncated): {str(data)[:500]}")
     return raw_text
 
 
-def call_llm(prompt: str) -> str:
+def _extract_text_from_ollama_response(data) -> str:
     """
-    Route to the correct backend based on LLM_BACKEND setting.
+    Helper to extract a textual response from Ollama-style JSON payloads.
+    Ollama responses vary by version/model; try common fields first,
+    then recursively search for the largest string value.
+    """
+    if data is None:
+        return ""
 
-    To switch backend, change LLM_BACKEND at the top of this file:
-        "groq"      — Groq cloud API (fast, needs internet + API key)
-        "ollama"    — Local Mistral 7B (slow on CPU, fully offline)
-        "medgemma"  — Fine-tuned MedGemma 4B (offline, no limits)
+    # Common field used earlier
+    if isinstance(data, dict):
+        if "response" in data and isinstance(data["response"], str):
+            return data["response"].strip()
+        # some Ollama responses nest choices/results
+        if "results" in data and isinstance(data["results"], list) and data["results"]:
+            # try to pull content from first result
+            first = data["results"][0]
+            if isinstance(first, dict):
+                # look for 'content' or 'text' or 'response'
+                for key in ("content", "text", "response", "output"):
+                    if key in first and isinstance(first[key], str):
+                        return first[key].strip()
+                # deeper: look for message->content
+                msg = first.get("message") or first.get("choices")
+                if isinstance(msg, dict):
+                    for v in msg.values():
+                        if isinstance(v, str) and len(v) > 0:
+                            return v.strip()
+                if isinstance(msg, list) and msg:
+                    for item in msg:
+                        if isinstance(item, dict):
+                            for v in item.values():
+                                if isinstance(v, str) and len(v) > 0:
+                                    return v.strip()
+        # fallback: find largest string value recursively
+        largest = ""
+        def _search(obj):
+            nonlocal largest
+            if isinstance(obj, str):
+                if len(obj) > len(largest):
+                    largest = obj
+            elif isinstance(obj, dict):
+                for v in obj.values():
+                    _search(v)
+            elif isinstance(obj, list):
+                for v in obj:
+                    _search(v)
+
+        _search(data)
+        return largest.strip()
+
+    if isinstance(data, list):
+        # join string elements or stringify dicts
+        parts = []
+        for item in data:
+            if isinstance(item, str):
+                parts.append(item)
+            elif isinstance(item, dict):
+                parts.append(json.dumps(item))
+        return "\n".join(parts).strip()
+
+    # last resort
+    try:
+        return str(data)
+    except Exception:
+        return ""
+
+
+def call_llm(prompt: str, backend: str = LLM_BACKEND) -> str:
     """
-    if LLM_BACKEND == "groq":
+    Route to the correct backend based on the selected backend string.
+
+    To switch backend, pass backend = 'groq', 'ollama', or 'medgemma'.
+    If no backend is passed, falls back to the default LLM_BACKEND.
+    """
+    normalized = (backend or LLM_BACKEND or "groq").lower()
+    if normalized == "groq":
         return call_groq(prompt)
-    elif LLM_BACKEND == "ollama":
+    elif normalized == "ollama":
         return call_ollama(prompt)
-    elif LLM_BACKEND == "medgemma":
+    elif normalized == "medgemma":
         return call_medgemma(prompt)
     else:
         raise ValueError(
-            f"Unknown LLM_BACKEND: '{LLM_BACKEND}'. "
+            f"Unknown LLM backend: '{backend}'. "
             "Valid options: 'groq', 'ollama', 'medgemma'."
         )
 
@@ -556,6 +628,7 @@ def run_llm_reasoning(
     vitals: dict,
     classifier_probs: List[tuple],
     critical_alert: dict,
+    llm_backend: Optional[str] = None,
 ) -> Dict:
     """
     Full pipeline step:
@@ -574,7 +647,7 @@ def run_llm_reasoning(
     retrieved_chunks = retrieve_context(query_text)
     prompt = build_prompt(vitals, classifier_probs, critical_alert, retrieved_chunks)
 
-    raw_text = call_llm(prompt)
+    raw_text = call_llm(prompt, backend=llm_backend)
     parsed   = parse_llm_json(raw_text)
     return parsed
 

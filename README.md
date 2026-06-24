@@ -237,7 +237,42 @@ python test_groq.py
 
 ---
 
-## 6. Running via API server (for web app team)
+## 6. Running the frontend
+
+The frontend is a static `index.html` single-page app. Run it from the
+project root so the browser can load assets correctly and submit to the
+local backend.
+
+```powershell
+# Serve the frontend from port 5500
+python -m http.server 5500
+```
+
+Then open in your browser:
+
+```
+http://127.0.0.1:5500/index.html
+```
+
+Make sure the backend API is also running on port 8000:
+
+```powershell
+uvicorn api_server:app --host 0.0.0.0 --port 8000
+```
+
+In the UI:
+- choose the backend tab (`Groq`, `Ollama Mistral`, or `MedGemma`)
+- select a sample patient from the dropdown
+- click **Load Sample Patient**
+- click **Run with ... →**
+
+If you want a faster development workflow, you can also use a VS Code
+Live Server extension or any static file server, but `python -m http.server`
+is the simplest built-in option.
+
+---
+
+## 7. Running via API server (for web app team)
 
 ### Start the server
 
@@ -303,6 +338,42 @@ same pipeline as the API.
 | `llm_reasoning` | 2-3 sentence plain English explanation from the LLM. |
 
 ---
+
+## 8. Push changes to GitHub
+
+1. Initialize git (if not already initialized):
+```bash
+git init
+```
+
+2. Add files and commit:
+```bash
+git add .
+git commit -m "Add frontend run instructions, sample dropdown, and MedGemma support"
+```
+
+3. Add the remote repository (replace with your repo URL):
+```bash
+git remote add origin https://github.com/<your-username>/<your-repo>.git
+```
+
+4. Push to GitHub:
+```bash
+git push -u origin main
+```
+
+If your default branch is `master`, replace `main` with `master`.
+
+### Tips
+- If you already have a remote, use `git remote -v` to verify it.
+- If Git refuses to push because the branch already exists, use:
+  ```bash
+git push --set-upstream origin main
+  ```
+- If you want to keep `.env` out of Git, make sure it is listed in `.gitignore`.
+
+---
+
 
 ## 7. Response time
 
