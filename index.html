@@ -10,47 +10,131 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <style>
-    :root {
-      color-scheme: dark;
-      font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    :root { color-scheme: dark; font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+    body { margin: 0; min-height: 100vh; background: #0f172a; color: #e2e8f0; }
+    .fade-slide { animation: fadeSlide 0.45s ease forwards; opacity: 0; transform: translateY(16px); }
+    @keyframes fadeSlide { to { opacity: 1; transform: translateY(0); } }
+    .field-focus:focus { outline: none; box-shadow: 0 0 0 3px rgba(13,148,136,0.18); }
+
+    /* Model card — single column list */
+    .model-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .model-card {
+      position: relative;
+      border-radius: 18px;
+      border: 1.5px solid rgba(51,65,85,0.8);
+      background: rgba(15,23,42,0.85);
+      padding: 18px 20px;
+      cursor: pointer;
+      transition: all 0.22s ease;
+      text-align: left;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      gap: 18px;
     }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: #0f172a;
-      color: #e2e8f0;
+    .model-card:hover { border-color: rgba(13,148,136,0.45); background: rgba(13,148,136,0.05); }
+    .model-card.active {
+      border-color: rgba(13,148,136,0.9);
+      background: rgba(13,148,136,0.09);
+      box-shadow: 0 0 0 1px rgba(13,148,136,0.3), 0 6px 24px rgba(13,148,136,0.12);
     }
-    .card-glow {
-      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.35);
+
+    /* Number badge */
+    .model-num {
+      display: flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      border: 1.5px solid rgba(51,65,85,0.9);
+      background: rgba(15,23,42,0.6);
+      font-size: 14px;
+      font-weight: 700;
+      color: #475569;
+      flex-shrink: 0;
+      transition: all 0.22s ease;
     }
-    .fade-slide {
-      animation: fadeSlide 0.45s ease forwards;
-      opacity: 0;
-      transform: translateY(16px);
+    .model-card.active .model-num {
+      border-color: rgba(13,148,136,0.6);
+      color: #2dd4bf;
+      background: rgba(13,148,136,0.12);
     }
-    @keyframes fadeSlide {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+
+    .model-icon-wrap {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      flex-shrink: 0;
     }
-    .scrollbar-thin::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
+
+    .model-body { flex: 1; min-width: 0; }
+    .model-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+    .model-stat {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11px; color: #475569;
     }
-    .scrollbar-thin::-webkit-scrollbar-thumb {
-      background: rgba(15, 23, 42, 0.55);
+    .model-card.active .model-stat { color: #64748b; }
+
+    .model-card-badge {
+      display: inline-block;
+      padding: 3px 9px;
       border-radius: 999px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      flex-shrink: 0;
     }
-    .scrollbar-thin::-webkit-scrollbar-track {
-      background: transparent;
+
+    .model-card-check {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: #0d9488;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0;
+      transform: scale(0.6);
+      transition: all 0.22s ease;
+      flex-shrink: 0;
     }
-    .field-focus:focus {
+    .model-card.active .model-card-check { opacity: 1; transform: scale(1); }
+
+    /* Custom API input inside the card */
+    .custom-api-fields {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(51,65,85,0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .custom-api-fields input, .custom-api-fields select {
+      width: 100%;
+      border-radius: 10px;
+      border: 1.5px solid rgba(51,65,85,0.9);
+      background: rgba(5,12,30,0.7);
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #cbd5e1;
       outline: none;
-      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+      transition: border-color 0.18s;
+      box-sizing: border-box;
     }
+    .custom-api-fields input:focus, .custom-api-fields select:focus {
+      border-color: rgba(13,148,136,0.6);
+    }
+    .custom-api-fields label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    /* Spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { animation: spin 0.8s linear infinite; }
   </style>
 </head>
 <body class="min-h-screen">
@@ -59,142 +143,457 @@
     const { useState, useEffect } = React;
     const t = React.createElement;
 
-    const iconPaths = {
-      Zap: 'M13 2L3 14h7l-1 8 10-12h-7l1-8z',
-      Flame: 'M12 2C8 6.5 8 11 12 14.5c4-3.5 4-8 0-12.5z',
-      Sparkles: 'M12 2.5l1.6 4.9 5.1.7-3.9 3.8.9 5.1-4.7-2.5-4.7 2.5.9-5.1-3.9-3.8 5.1-.7L12 2.5z',
-      AlertCircle: 'M12 8v5m0 4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z',
-      Pill: 'M9 14.5l6-6m1.4-1.4a3 3 0 0 1 4.3 4.3l-7.4 7.4a3 3 0 0 1 4.3 0l-7.4-7.4a3 3 0 0 1 4.3-4.3l1.4 1.4',
-      ListChecks: 'M9 12l2 2 4-4M4 6h16M4 12h3M4 18h3',
-      ArrowRightCircle: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zm-1-7l4-4-4-4m-4 4h8',
-      Cpu: 'M9 4h6v2H9V4zm-4 8h2v2H5v-2zm14 0h2v2h-2v-2zm-2 10h2v-2h-2v2zm-8 0h2v-2H9v2zm-9-9h2v2H0v-2zm17 0h2v2h-2v-2z',
-      ChevronUp: 'M18 15l-6-6-6 6',
-      AlertTriangle: 'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4m0 4h.01',
-      ChevronDown: 'M6 9l6 6 6-6',
-      FileText: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm-2 0v6h6',
-    };
-
-    function Icon({ name, className = '', size = 18, ...props }) {
-      const path = iconPaths[name];
-      if (!path) return null;
+    function SvgIcon({ paths, size = 20, className = '', viewBox = '0 0 24 24', fill = 'none', strokeWidth = 2, style }) {
       return t('svg', {
-        xmlns: 'http://www.w3.org/2000/svg',
-        viewBox: '0 0 24 24',
-        fill: 'none',
-        stroke: 'currentColor',
-        strokeWidth: 2,
-        strokeLinecap: 'round',
-        strokeLinejoin: 'round',
-        className,
-        width: size,
-        height: size,
-        ...props
-      }, t('path', { d: path }));
+        xmlns: 'http://www.w3.org/2000/svg', viewBox,
+        fill, stroke: fill === 'none' ? 'currentColor' : 'none',
+        strokeWidth, strokeLinecap: 'round', strokeLinejoin: 'round',
+        width: size, height: size, className, style,
+      }, ...(Array.isArray(paths) ? paths : [paths]).map((d, i) =>
+        typeof d === 'string'
+          ? t('path', { key: i, d })
+          : t('circle', { key: i, ...d })
+      ));
     }
 
-    const tabs = [
-      { id: 'groq', title: 'Groq Cloud', subtitle: '~1-2s • Llama 3.3 70B', icon: 'Zap', label: 'Groq Cloud' },
-      { id: 'ollama', title: 'Ollama Mistral', subtitle: '~200s • Offline', icon: 'Flame', label: 'Ollama Mistral' },
-      { id: 'medgemma', title: 'MedGemma', subtitle: '~20-50s • Fine-tuned', icon: 'Sparkles', label: 'MedGemma' }
+    const Icons = {
+      Zap:          ({ size, className, style }) => t(SvgIcon, { size, className, style, paths: 'M13 2L3 14h7l-1 8 10-12h-7z' }),
+      Flame:        ({ size, className, style }) => t(SvgIcon, { size, className, style, paths: 'M12 2c-3.5 4.5-3.5 9 0 12.5C15.5 11 15.5 6.5 12 2z' }),
+      Sparkles:     ({ size, className, style }) => t(SvgIcon, { size, className, style, paths: ['M12 2.5l1.6 4.9 5.1.7-3.9 3.8.9 5.1-4.7-2.5-4.7 2.5.9-5.1-3.9-3.8 5.1-.7z', 'M19 2l.5 1.5L21 4l-1.5.5L19 6l-.5-1.5L17 4l1.5-.5z', 'M5 18l.4 1.2L6.6 19.6l-1.2.4L5 21.2l-.4-1.2L3.4 19.6l1.2-.4z'] }),
+      Check:        ({ size, className, style }) => t(SvgIcon, { size, className, style, paths: 'M5 12l5 5L20 7' }),
+      AlertCircle:  ({ size, className }) => t(SvgIcon, { size, className, paths: ['M12 8v5m0 4h.01', 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0'] }),
+      AlertTriangle:({ size, className }) => t(SvgIcon, { size, className, paths: 'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4m0 4h.01' }),
+      Pill:         ({ size, className }) => t(SvgIcon, { size, className, paths: 'M10.5 20H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H20a2 2 0 0 1 2 2v3M12 22v-6m-3 3h6M22 17.5a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0z' }),
+      ListChecks:   ({ size, className }) => t(SvgIcon, { size, className, paths: ['M9 12l2 2 4-4', 'M4 6h16M4 12h3M4 18h3'] }),
+      ArrowRight:   ({ size, className }) => t(SvgIcon, { size, className, paths: 'M5 12h14m-5-5 5 5-5 5' }),
+      Cpu:          ({ size, className }) => t(SvgIcon, { size, className, paths: ['M9 3H5a2 2 0 0 0-2 2v4m6-6h6m-6 0v6m6-6h4a2 2 0 0 1 2 2v4m-6-6v6m0 0H3m6 0v6m6-6v6m0 0h4a2 2 0 0 1-2 2H9m6 0H9m0 0H5a2 2 0 0 1-2-2v-4'] }),
+      ChevronDown:  ({ size, className }) => t(SvgIcon, { size, className, paths: 'M6 9l6 6 6-6' }),
+      ChevronUp:    ({ size, className }) => t(SvgIcon, { size, className, paths: 'M18 15l-6-6-6 6' }),
+      FileText:     ({ size, className }) => t(SvgIcon, { size, className, paths: ['M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z', 'M14 2v6h6M16 13H8m8 4H8m2-8H8'] }),
+      Clock:        ({ size, className }) => t(SvgIcon, { size, className, paths: ['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z', 'M12 6v6l4 2'] }),
+      Cloud:        ({ size, className }) => t(SvgIcon, { size, className, paths: 'M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z' }),
+      Server:       ({ size, className }) => t(SvgIcon, { size, className, paths: ['M2 2h20v8H2zM2 14h20v8H2z', 'M6 6h.01M6 18h.01'] }),
+      Activity:     ({ size, className }) => t(SvgIcon, { size, className, paths: 'M22 12h-4l-3 9L9 3l-3 9H2' }),
+      Key:          ({ size, className, style }) => t(SvgIcon, { size, className, style, paths: 'M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4' }),
+    };
+
+    // ── Model definitions (reordered: MedGemma=1, Groq=2, Ollama=3, Custom=4) ──
+    const MODELS = [
+      {
+        id: 'medgemma',
+        num: 1,
+        name: 'MedGemma',
+        model: 'Gemma 4B · Fine-tuned',
+        speed: '~20–50s',
+        type: 'Local · Fine-tuned',
+        description: 'Custom fine-tuned on 450 CDSS-specific examples. 100% offline — no patient data leaves the hospital.',
+        icon: 'Sparkles',
+        iconBg: 'rgba(13,148,136,0.18)',
+        iconColor: '#2dd4bf',
+        badge: 'Recommended',
+        badgeBg: 'rgba(13,148,136,0.12)',
+        badgeColor: '#2dd4bf',
+        stats: [
+          { icon: 'Clock', label: '20–50s response' },
+          { icon: 'Server', label: 'Runs locally' },
+          { icon: 'Activity', label: 'CDSS fine-tuned' },
+        ],
+      },
+      {
+        id: 'groq',
+        num: 2,
+        name: 'Groq Cloud',
+        model: 'Llama 3.3 70B',
+        speed: '~1–2s',
+        type: 'Cloud API',
+        description: 'Fastest responses via Groq\'s LPU inference chips. Requires internet — best for real-time clinical workflow.',
+        icon: 'Zap',
+        iconBg: 'rgba(234,179,8,0.15)',
+        iconColor: '#fbbf24',
+        badge: 'Fastest',
+        badgeBg: 'rgba(234,179,8,0.12)',
+        badgeColor: '#fbbf24',
+        stats: [
+          { icon: 'Clock', label: '1–2s response' },
+          { icon: 'Cloud', label: 'Groq LPU cloud' },
+          { icon: 'Activity', label: '70B parameters' },
+        ],
+      },
+      {
+        id: 'ollama',
+        num: 3,
+        name: 'Ollama Mistral',
+        model: 'Mistral 7B',
+        speed: '~200s',
+        type: 'Local · Offline',
+        description: 'Stock Mistral 7B via Ollama — fully air-gapped on CPU. No fine-tuning applied. Slowest option.',
+        icon: 'Flame',
+        iconBg: 'rgba(239,68,68,0.13)',
+        iconColor: '#f87171',
+        badge: 'Air-gapped',
+        badgeBg: 'rgba(239,68,68,0.10)',
+        badgeColor: '#f87171',
+        stats: [
+          { icon: 'Clock', label: '~200s response' },
+          { icon: 'Server', label: 'Fully offline' },
+          { icon: 'Activity', label: 'Mistral 7B' },
+        ],
+      },
+      {
+        id: 'custom',
+        num: 4,
+        name: 'Custom LLM API',
+        model: 'Your choice',
+        speed: 'Varies',
+        type: 'Custom · Configurable',
+        description: 'Connect any OpenAI-compatible API endpoint. Bring your own key and model — Mistral, Together, OpenRouter, etc.',
+        icon: 'Key',
+        iconBg: 'rgba(139,92,246,0.16)',
+        iconColor: '#c084fc',
+        badge: 'Custom',
+        badgeBg: 'rgba(139,92,246,0.12)',
+        badgeColor: '#c084fc',
+        stats: [
+          { icon: 'Clock', label: 'Varies by provider' },
+          { icon: 'Cloud', label: 'Any API endpoint' },
+          { icon: 'Activity', label: 'Model of choice' },
+        ],
+      },
     ];
 
     const SAMPLE_PATIENTS = [
-      {
-        label: 'Iron-deficiency anaemia (likely)',
-        patient: {
-          age: '28', sex: 'Female', chief_complaint: 'Fatigue, weakness, pale skin, dizziness on standing, heavy periods', bp_systolic: '100', bp_diastolic: '65', blood_sugar: '85', blood_sugar_context: 'fasting', weight_kg: '50', height_cm: '155', temperature_c: '36.8', pulse_bpm: '105'
-        }
-      },
-      {
-        label: 'Hypertensive crisis (urgent)',
-        patient: {
-          age: '60', sex: 'Male', chief_complaint: 'Severe headache, blurred vision, chest discomfort', bp_systolic: '188', bp_diastolic: '124', blood_sugar: '110', blood_sugar_context: 'random', weight_kg: '82', height_cm: '172', temperature_c: '36.9', pulse_bpm: '90'
-        }
-      },
-      {
-        label: 'Type 2 Diabetes suspicious',
-        patient: {
-          age: '50', sex: 'Male', chief_complaint: 'Increased thirst, frequent urination, fatigue', bp_systolic: '128', bp_diastolic: '82', blood_sugar: '215', blood_sugar_context: 'random', weight_kg: '90', height_cm: '170', temperature_c: '37.0', pulse_bpm: '84'
-        }
-      },
-      {
-        label: 'Community-acquired pneumonia',
-        patient: {
-          age: '45', sex: 'Female', chief_complaint: 'Fever, productive cough, shortness of breath', bp_systolic: '118', bp_diastolic: '76', blood_sugar: '98', blood_sugar_context: 'random', weight_kg: '68', height_cm: '162', temperature_c: '38.9', pulse_bpm: '110'
-        }
-      },
-      {
-        label: 'Acute gastroenteritis',
-        patient: {
-          age: '22', sex: 'Male', chief_complaint: 'Watery diarrhea, vomiting, abdominal cramps', bp_systolic: '105', bp_diastolic: '65', blood_sugar: '90', blood_sugar_context: 'random', weight_kg: '60', height_cm: '175', temperature_c: '37.5', pulse_bpm: '98'
-        }
-      },
-      {
-        label: 'Uncomplicated UTI',
-        patient: {
-          age: '30', sex: 'Female', chief_complaint: 'Dysuria, frequency, low abdominal discomfort', bp_systolic: '112', bp_diastolic: '70', blood_sugar: '88', blood_sugar_context: 'random', weight_kg: '58', height_cm: '160', temperature_c: '36.7', pulse_bpm: '76'
-        }
-      },
-      {
-        label: 'Asthma exacerbation (mild)',
-        patient: {
-          age: '35', sex: 'Male', chief_complaint: 'Wheezing, shortness of breath, cough at night', bp_systolic: '120', bp_diastolic: '78', blood_sugar: '95', blood_sugar_context: 'random', weight_kg: '75', height_cm: '178', temperature_c: '36.6', pulse_bpm: '100'
-        }
-      }
+      { label: 'Iron-deficiency anaemia (likely)', patient: { age:'28', sex:'Female', chief_complaint:'Fatigue, weakness, pale skin, dizziness on standing, heavy periods', bp_systolic:'100', bp_diastolic:'65', blood_sugar:'85', blood_sugar_context:'fasting', weight_kg:'50', height_cm:'155', temperature_c:'36.8', pulse_bpm:'105' } },
+      { label: 'Hypertensive crisis (urgent)', patient: { age:'60', sex:'Male', chief_complaint:'Severe headache, blurred vision, chest discomfort', bp_systolic:'188', bp_diastolic:'124', blood_sugar:'110', blood_sugar_context:'random', weight_kg:'82', height_cm:'172', temperature_c:'36.9', pulse_bpm:'90' } },
+      { label: 'Type 2 Diabetes suspicious', patient: { age:'50', sex:'Male', chief_complaint:'Increased thirst, frequent urination, fatigue', bp_systolic:'128', bp_diastolic:'82', blood_sugar:'215', blood_sugar_context:'random', weight_kg:'90', height_cm:'170', temperature_c:'37.0', pulse_bpm:'84' } },
+      { label: 'Community-acquired pneumonia', patient: { age:'45', sex:'Female', chief_complaint:'Fever, productive cough, shortness of breath', bp_systolic:'118', bp_diastolic:'76', blood_sugar:'98', blood_sugar_context:'random', weight_kg:'68', height_cm:'162', temperature_c:'38.9', pulse_bpm:'110' } },
+      { label: 'Acute gastroenteritis', patient: { age:'22', sex:'Male', chief_complaint:'Watery diarrhea, vomiting, abdominal cramps', bp_systolic:'105', bp_diastolic:'65', blood_sugar:'90', blood_sugar_context:'random', weight_kg:'60', height_cm:'175', temperature_c:'37.5', pulse_bpm:'98' } },
+      { label: 'Uncomplicated UTI', patient: { age:'30', sex:'Female', chief_complaint:'Dysuria, frequency, low abdominal discomfort', bp_systolic:'112', bp_diastolic:'70', blood_sugar:'88', blood_sugar_context:'random', weight_kg:'58', height_cm:'160', temperature_c:'36.7', pulse_bpm:'76' } },
+      { label: 'Asthma exacerbation (mild)', patient: { age:'35', sex:'Male', chief_complaint:'Wheezing, shortness of breath, cough at night', bp_systolic:'120', bp_diastolic:'78', blood_sugar:'95', blood_sugar_context:'random', weight_kg:'75', height_cm:'178', temperature_c:'36.6', pulse_bpm:'100' } },
     ];
 
-    const defaultForm = {
-      age: '', sex: '', chief_complaint: '', bp_systolic: '', bp_diastolic: '',
-      blood_sugar: '', blood_sugar_context: 'random', weight_kg: '', height_cm: '',
-      temperature_c: '', pulse_bpm: ''
-    };
-
-    function getActionBadge(action) {
-      switch (action) {
-        case 'full_recommendation': return { label: 'Full Recommendation', color: 'bg-emerald-500/10 text-emerald-300' };
-        case 'diagnosis_only': return { label: 'Diagnosis Only', color: 'bg-amber-500/10 text-amber-300' };
-        case 'refer': return { label: 'Refer to Specialist', color: 'bg-red-500/10 text-red-300' };
-        default: return { label: action || 'Unknown', color: 'bg-slate-700 text-slate-200' };
-      }
-    }
+    const defaultForm = { age:'', sex:'', chief_complaint:'', bp_systolic:'', bp_diastolic:'', blood_sugar:'', blood_sugar_context:'random', weight_kg:'', height_cm:'', temperature_c:'', pulse_bpm:'' };
+    const defaultCustom = { endpoint: '', apiKey: '', modelName: '', provider: 'openai' };
 
     function validate(form) {
-      const errors = {};
-      if (!form.age) errors.age = 'Required.';
-      else if (!(form.age >= 1 && form.age <= 120)) errors.age = 'Age must be 1–120.';
-      if (!form.sex) errors.sex = 'Required.';
-      if (!form.chief_complaint) errors.chief_complaint = 'Required.';
-      if (!form.bp_systolic) errors.bp_systolic = 'Required.';
-      else if (!(form.bp_systolic >= 50 && form.bp_systolic <= 300)) errors.bp_systolic = '50–300 mmHg.';
-      if (!form.bp_diastolic) errors.bp_diastolic = 'Required.';
-      else if (!(form.bp_diastolic >= 30 && form.bp_diastolic <= 200)) errors.bp_diastolic = '30–200 mmHg.';
-      if (form.blood_sugar !== '' && !(form.blood_sugar >= 20 && form.blood_sugar <= 600)) errors.blood_sugar = '20–600 mg/dL.';
-      if (form.temperature_c !== '' && !(form.temperature_c >= 30 && form.temperature_c <= 45)) errors.temperature_c = '30–45 °C.';
-      if (form.pulse_bpm !== '' && !(form.pulse_bpm >= 20 && form.pulse_bpm <= 250)) errors.pulse_bpm = '20–250 bpm.';
-      return errors;
+      const e = {};
+      if (!form.age) e.age = 'Required.'; else if (!(form.age >= 1 && form.age <= 120)) e.age = 'Age 1–120.';
+      if (!form.sex) e.sex = 'Required.';
+      if (!form.chief_complaint) e.chief_complaint = 'Required.';
+      if (!form.bp_systolic) e.bp_systolic = 'Required.'; else if (!(form.bp_systolic >= 50 && form.bp_systolic <= 300)) e.bp_systolic = '50–300 mmHg.';
+      if (!form.bp_diastolic) e.bp_diastolic = 'Required.'; else if (!(form.bp_diastolic >= 30 && form.bp_diastolic <= 200)) e.bp_diastolic = '30–200 mmHg.';
+      if (form.blood_sugar !== '' && !(form.blood_sugar >= 20 && form.blood_sugar <= 600)) e.blood_sugar = '20–600 mg/dL.';
+      if (form.temperature_c !== '' && !(form.temperature_c >= 30 && form.temperature_c <= 45)) e.temperature_c = '30–45°C.';
+      if (form.pulse_bpm !== '' && !(form.pulse_bpm >= 20 && form.pulse_bpm <= 250)) e.pulse_bpm = '20–250 bpm.';
+      return e;
     }
 
-    function formatCitation(citation) {
-      if (!citation) return 'Unknown';
-      return citation.toLowerCase().includes('tier 1') || citation.toLowerCase().includes('tier 2')
-        ? 'WHO EML + NEML'
-        : citation;
+    function getActionBadge(action) {
+      if (action === 'full_recommendation') return { label: 'Full Recommendation', color: 'bg-emerald-500/10 text-emerald-300' };
+      if (action === 'diagnosis_only') return { label: 'Diagnosis Only', color: 'bg-amber-500/10 text-amber-300' };
+      if (action === 'refer') return { label: 'Refer to Specialist', color: 'bg-red-500/10 text-red-300' };
+      return { label: action || 'Unknown', color: 'bg-slate-700 text-slate-200' };
     }
 
+    // ── Model Selection List ─────────────────────────────────────────────────
+    function ModelList({ activeModel, setActiveModel, customConfig, setCustomConfig }) {
+      return t('div', { className: 'model-list' },
+        MODELS.map(model => {
+          const active = model.id === activeModel.id;
+          const IconComp = Icons[model.icon];
+          const isCustom = model.id === 'custom';
+
+          return t('button', {
+            key: model.id,
+            type: 'button',
+            onClick: () => setActiveModel(model),
+            className: `model-card${active ? ' active' : ''}`,
+            style: { display: 'flex', flexDirection: 'column', alignItems: 'stretch' },
+          },
+            // Top row: num + icon + body + badge + check
+            t('div', { style: { display: 'flex', alignItems: 'center', gap: '14px', width: '100%' } },
+              // Number
+              t('div', { className: 'model-num' }, model.num),
+
+              // Icon
+              t('div', { className: 'model-icon-wrap', style: { background: model.iconBg } },
+                t(IconComp, { size: 20, style: { color: model.iconColor } })
+              ),
+
+              // Name + stats
+              t('div', { className: 'model-body' },
+                t('div', { style: { display: 'flex', alignItems: 'center', gap: '8px' } },
+                  t('span', { style: { fontSize: '14px', fontWeight: '600', color: '#f1f5f9', lineHeight: '1.2' } }, model.name),
+                  t('span', { style: { fontSize: '11px', color: '#475569', fontWeight: '500' } }, model.model),
+                ),
+                t('div', { style: { display: 'flex', gap: '12px', marginTop: '5px', flexWrap: 'wrap' } },
+                  model.stats.map((stat, i) => {
+                    const StatIcon = Icons[stat.icon];
+                    return t('div', { key: i, className: 'model-stat' },
+                      t(StatIcon, { size: 11 }),
+                      t('span', null, stat.label)
+                    );
+                  })
+                )
+              ),
+
+              // Badge + check
+              t('div', { style: { display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 } },
+                t('span', {
+                  className: 'model-card-badge',
+                  style: { background: model.badgeBg, color: model.badgeColor }
+                }, model.badge),
+                t('div', { className: 'model-card-check' },
+                  t(Icons.Check, { size: 11, className: 'text-white' })
+                )
+              )
+            ),
+
+            // Description (shown always, below the row)
+            t('p', { style: { fontSize: '12px', color: '#64748b', lineHeight: '1.6', marginTop: '10px', paddingLeft: '102px', textAlign: 'left' } },
+              model.description
+            ),
+
+            // Custom API fields — shown only when this card is active
+            isCustom && active && t('div', {
+              className: 'custom-api-fields',
+              onClick: e => e.stopPropagation(),
+            },
+              t('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' } },
+                t('div', null,
+                  t('label', null, 'Provider Preset'),
+                  t('select', {
+                    value: customConfig.provider,
+                    onChange: e => setCustomConfig(p => ({ ...p, provider: e.target.value })),
+                  },
+                    t('option', { value: 'openai' }, 'OpenAI'),
+                    t('option', { value: 'openrouter' }, 'OpenRouter'),
+                    t('option', { value: 'together' }, 'Together AI'),
+                    t('option', { value: 'mistral' }, 'Mistral AI'),
+                    t('option', { value: 'custom' }, 'Custom endpoint'),
+                  )
+                ),
+                t('div', null,
+                  t('label', null, 'Model Name'),
+                  t('input', {
+                    type: 'text',
+                    placeholder: 'e.g. gpt-4o-mini',
+                    value: customConfig.modelName,
+                    onChange: e => setCustomConfig(p => ({ ...p, modelName: e.target.value })),
+                  })
+                ),
+              ),
+              t('div', null,
+                t('label', null, 'API Base URL'),
+                t('input', {
+                  type: 'text',
+                  placeholder: 'https://api.openai.com/v1',
+                  value: customConfig.endpoint,
+                  onChange: e => setCustomConfig(p => ({ ...p, endpoint: e.target.value })),
+                })
+              ),
+              t('div', null,
+                t('label', null, 'API Key'),
+                t('input', {
+                  type: 'password',
+                  placeholder: 'sk-…',
+                  value: customConfig.apiKey,
+                  onChange: e => setCustomConfig(p => ({ ...p, apiKey: e.target.value })),
+                })
+              ),
+            )
+          );
+        })
+      );
+    }
+
+    // ── Input field helpers ─────────────────────────────────────────────────
+    function Field({ label, error, children }) {
+      return t('div', null,
+        t('label', { className: 'block text-sm font-medium text-slate-300 mb-2' }, label),
+        children,
+        error && t('p', { className: 'mt-1.5 text-xs text-rose-300' }, error)
+      );
+    }
+
+    function Input({ value, onChange, type = 'number', placeholder, min, max, step, error }) {
+      return t('input', {
+        type, value, placeholder, min, max, step,
+        onChange: e => onChange(e.target.value),
+        className: `field-focus w-full rounded-2xl border ${error ? 'border-rose-500/60' : 'border-slate-700'} bg-slate-900/95 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 transition`,
+      });
+    }
+
+    function Select({ value, onChange, options, error }) {
+      return t('select', {
+        value,
+        onChange: e => onChange(e.target.value),
+        className: `field-focus w-full rounded-2xl border ${error ? 'border-rose-500/60' : 'border-slate-700'} bg-slate-900/95 px-4 py-3 text-sm text-slate-100 transition`,
+      }, ...options.map(([val, label]) => t('option', { key: val, value: val }, label)));
+    }
+
+    // ── Result rendering ────────────────────────────────────────────────────
+    function ResultPanel({ response, responseTime, activeModel, onRetry, error }) {
+      const [classifierOpen, setClassifierOpen] = useState(false);
+
+      if (error) return t('div', { className: 'mt-6 rounded-2xl border border-red-500/20 bg-red-500/10 p-5 fade-slide' },
+        t('div', { className: 'flex items-start gap-3' },
+          t(Icons.AlertTriangle, { size: 18, className: 'text-red-400 mt-0.5 shrink-0' }),
+          t('div', null,
+            t('p', { className: 'font-semibold text-red-100' }, 'Diagnosis failed'),
+            t('p', { className: 'mt-1 text-sm text-red-100/80 leading-6' }, error)
+          )
+        ),
+        t('button', { type: 'button', onClick: onRetry, className: 'mt-4 rounded-full bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-400 transition' }, 'Retry')
+      );
+
+      if (!response) return null;
+
+      const diagnosis = response.diagnosis || {};
+      const conditionName = diagnosis.name || 'Clinical diagnosis';
+      const icd10 = diagnosis.icd10 || '';
+      const medicines = response.medicines || [];
+      const differentials = response.differential_diagnoses || [];
+      const classifier = response.classifier_output || [];
+      const action = getActionBadge(response.action);
+      const critical = response.critical_alert || { flag: false, reasons: [] };
+      const rawConf = response.confidence != null ? Number(response.confidence) : 0;
+      const confidence = rawConf <= 1 ? rawConf * 100 : rawConf;
+      const confColor = confidence > 80 ? 'bg-emerald-400' : confidence >= 60 ? 'bg-amber-400' : 'bg-red-500';
+      const IconComp = Icons[activeModel.icon];
+
+      return t('div', { className: 'space-y-4 mt-6 fade-slide' },
+        critical.flag && t('div', { className: 'rounded-2xl border border-red-500/25 bg-red-500/10 p-4' },
+          t('div', { className: 'flex items-center gap-2 text-sm font-semibold text-red-200' },
+            t(Icons.AlertCircle, { size: 16, className: 'text-red-400' }),
+            'Critical Alert'
+          ),
+          t('ul', { className: 'mt-2 space-y-1 text-sm text-red-100/80 pl-6 list-disc' },
+            critical.reasons.map((r, i) => t('li', { key: i }, r))
+          )
+        ),
+        t('div', { className: 'rounded-2xl border border-slate-700/80 bg-slate-900/90 p-6' },
+          t('div', { className: 'flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between' },
+            t('div', null,
+              t('div', { className: 'flex flex-wrap items-center gap-2' },
+                t('h2', { className: 'text-xl font-semibold text-white' }, conditionName),
+                icd10 && t('span', { className: 'rounded-full bg-teal-600/15 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-teal-300' }, icd10)
+              ),
+              t('div', { className: 'mt-4 flex items-center gap-3' },
+                t('span', { className: 'text-xs text-slate-500 shrink-0' }, 'Confidence'),
+                t('div', { className: 'flex-1 h-2 rounded-full bg-slate-800 overflow-hidden' },
+                  t('div', { className: `h-full rounded-full transition-all ${confColor}`, style: { width: `${Math.min(confidence, 100)}%` } })
+                ),
+                t('span', { className: 'text-sm font-semibold text-slate-200 shrink-0' }, `${confidence.toFixed(0)}%`)
+              )
+            ),
+            t('div', { className: 'flex items-center gap-2 rounded-2xl bg-slate-800/80 px-4 py-3 text-xs text-slate-400 shrink-0' },
+              t(IconComp, { size: 14, style: { color: activeModel.iconColor } }),
+              t('span', null, `${activeModel.name} • ${responseTime}s`)
+            )
+          )
+        ),
+        t('div', { className: 'grid gap-4 lg:grid-cols-2' },
+          t('div', { className: 'rounded-2xl border border-slate-700/80 bg-slate-900/90 p-5' },
+            t('div', { className: 'flex items-center gap-2 text-sm font-semibold text-slate-100 mb-4' },
+              t(Icons.Pill, { size: 16, className: 'text-teal-300' }),
+              'Recommended Medicines'
+            ),
+            medicines.length === 0
+              ? t('p', { className: 'text-sm text-slate-500' }, 'No medicines suggested.')
+              : t('div', { className: 'space-y-3' },
+                  medicines.map((med, i) => t('div', { key: i, className: 'rounded-xl border border-slate-700/60 bg-slate-950/70 p-4' },
+                    t('div', { className: 'flex items-start justify-between gap-2' },
+                      t('div', null,
+                        t('div', { className: 'text-sm font-semibold text-white' }, med.name || 'Unknown'),
+                        med.dosage_form && t('div', { className: 'text-xs text-slate-500 mt-0.5' }, med.dosage_form)
+                      ),
+                      t('span', { className: 'rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-300 shrink-0' }, 'Verified')
+                    ),
+                    med.dose_instruction && t('p', { className: 'mt-2.5 text-xs leading-5 text-slate-300' }, med.dose_instruction),
+                    med.citation && t('div', { className: 'mt-2 text-[10px] text-slate-600' }, med.citation)
+                  ))
+                )
+          ),
+          t('div', { className: 'space-y-4' },
+            t('div', { className: 'rounded-2xl border border-slate-700/80 bg-slate-900/90 p-5' },
+              t('div', { className: 'flex items-center gap-2 text-sm font-semibold text-slate-100 mb-3' },
+                t(Icons.ListChecks, { size: 16, className: 'text-teal-300' }),
+                'Differential Diagnoses'
+              ),
+              t('div', { className: 'flex flex-wrap gap-2' },
+                differentials.length === 0
+                  ? t('span', { className: 'text-sm text-slate-500' }, 'None listed.')
+                  : differentials.map((d, i) =>
+                      t('span', { key: i, className: 'rounded-full bg-slate-800 px-3 py-1.5 text-xs text-slate-300' },
+                        typeof d === 'object' ? `${d.name}${d.icd10 ? ` (${d.icd10})` : ''}` : d
+                      )
+                    )
+              )
+            ),
+            t('div', { className: 'rounded-2xl border border-slate-700/80 bg-slate-900/90 p-5' },
+              t('div', { className: 'flex items-center justify-between gap-3 mb-3' },
+                t('div', { className: 'flex items-center gap-2 text-sm font-semibold text-slate-100' },
+                  t(Icons.ArrowRight, { size: 16, className: 'text-teal-300' }),
+                  'Action'
+                ),
+                t('span', { className: `rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider ${action.color}` }, action.label)
+              ),
+              response.refer_to_specialist && t('div', { className: 'rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-xs text-amber-100 leading-5' },
+                response.refer_reason || 'Referral recommended based on clinical risk factors.'
+              )
+            )
+          )
+        ),
+        t('div', { className: 'rounded-2xl border border-slate-700/80 bg-slate-900/90 p-5' },
+          t('button', {
+            type: 'button',
+            onClick: () => setClassifierOpen(p => !p),
+            className: 'flex w-full items-center justify-between text-sm font-semibold text-slate-100'
+          },
+            t('div', { className: 'flex items-center gap-2' },
+              t(Icons.Cpu, { size: 16, className: 'text-teal-300' }),
+              'ML Classifier Signal'
+            ),
+            t(classifierOpen ? Icons.ChevronUp : Icons.ChevronDown, { size: 16, className: 'text-slate-400' })
+          ),
+          classifierOpen && t('div', { className: 'mt-4 space-y-3' },
+            classifier.slice(0, 5).map((item, i) => {
+              const pct = Math.min(100, Number(item.probability || 0) * 100);
+              return t('div', { key: i },
+                t('div', { className: 'flex items-center justify-between text-xs text-slate-400 mb-1.5' },
+                  t('span', null, item.label || 'Unknown'),
+                  t('span', null, `${pct.toFixed(0)}%`)
+                ),
+                t('div', { className: 'h-1.5 rounded-full bg-slate-800 overflow-hidden' },
+                  t('div', { className: 'h-full rounded-full bg-teal-500 transition-all', style: { width: `${pct}%` } })
+                )
+              );
+            })
+          )
+        ),
+        t('div', { className: 'rounded-2xl border border-slate-700/80 bg-slate-900/90 p-5' },
+          t('div', { className: 'flex items-center gap-2 text-sm font-semibold text-slate-100 mb-3' },
+            t(Icons.FileText, { size: 16, className: 'text-teal-300' }),
+            'Clinical Reasoning'
+          ),
+          t('p', { className: 'text-sm leading-7 text-slate-300 italic' }, response.llm_reasoning || response.reasoning || 'No reasoning returned.')
+        )
+      );
+    }
+
+    // ── Main App ────────────────────────────────────────────────────────────
     function App() {
-      const [activeTab, setActiveTab] = useState(tabs[0]);
+      const [activeModel, setActiveModel] = useState(MODELS[0]);
       const [form, setForm] = useState(defaultForm);
       const [errors, setErrors] = useState({});
       const [response, setResponse] = useState(null);
       const [error, setError] = useState(null);
       const [loading, setLoading] = useState(false);
       const [responseTime, setResponseTime] = useState(null);
-      const [classifierOpen, setClassifierOpen] = useState(false);
       const [selectedSample, setSelectedSample] = useState(0);
+      const [customConfig, setCustomConfig] = useState(defaultCustom);
 
-      useEffect(() => {
-        setError(null);
-      }, [activeTab]);
+      useEffect(() => { setError(null); }, [activeModel]);
 
       function updateField(field, value) {
         setForm(prev => ({ ...prev, [field]: value }));
@@ -202,8 +601,7 @@
       }
 
       function loadSample() {
-        const idx = Number(selectedSample) || 0;
-        const entry = SAMPLE_PATIENTS[idx] || SAMPLE_PATIENTS[0];
+        const entry = SAMPLE_PATIENTS[Number(selectedSample)] || SAMPLE_PATIENTS[0];
         setForm(entry.patient);
         setErrors({});
         setResponse(null);
@@ -212,15 +610,8 @@
 
       async function submitDiagnosis() {
         const validation = validate(form);
-        if (Object.keys(validation).length) {
-          setErrors(validation);
-          setResponse(null);
-          return;
-        }
-        setLoading(true);
-        setError(null);
-        setResponse(null);
-        setResponseTime(null);
+        if (Object.keys(validation).length) { setErrors(validation); return; }
+        setLoading(true); setError(null); setResponse(null); setResponseTime(null);
         const payload = {
           age: Number(form.age),
           sex: form.sex === 'Female' ? 'F' : 'M',
@@ -233,397 +624,155 @@
           temperature_c: form.temperature_c === '' ? null : Number(form.temperature_c),
           pulse_bpm: form.pulse_bpm === '' ? null : Number(form.pulse_bpm),
           chief_complaint: form.chief_complaint,
-          llm_backend: activeTab.id,
+          llm_backend: activeModel.id,
+          ...(activeModel.id === 'custom' ? { custom_config: customConfig } : {}),
         };
         const start = performance.now();
-
         try {
-          const result = await fetch('http://localhost:8000/diagnose', {
+          const res = await fetch('http://localhost:8000/diagnose', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
           });
-          const text = await result.text();
+          const text = await res.text();
           const duration = ((performance.now() - start) / 1000).toFixed(2);
           setResponseTime(duration);
-          if (!result.ok) {
-            throw new Error(text || result.statusText || 'Unexpected API response');
-          }
-          const json = JSON.parse(text);
-          setResponse(json);
-          setError(null);
-          setClassifierOpen(false);
+          if (!res.ok) throw new Error(text || res.statusText);
+          setResponse(JSON.parse(text));
         } catch (err) {
-          const message = err.message.includes('Failed to fetch')
-            ? 'Unable to connect. Make sure the API server is running: python api_server.py'
-            : err.message;
-          setError(message);
+          setError(
+            err.message.includes('Failed to fetch')
+              ? 'Unable to connect. Make sure the API server is running:\n  python api_server.py'
+              : err.message
+          );
         } finally {
           setLoading(false);
         }
       }
 
-      function renderTab(tab) {
-        const active = tab.id === activeTab.id;
-        return t('button', {
-          key: tab.id,
-          type: 'button',
-          onClick: () => setActiveTab(tab),
-          className: `relative flex-1 min-w-0 rounded-3xl border transition-all duration-250 text-left px-5 py-4 ${active ? 'bg-teal-600 text-white shadow-teal-500/20 border-teal-500/20' : 'bg-slate-800/75 text-slate-300 border-slate-700 hover:border-slate-500'}`
-        },
-          t('div', { className: 'flex items-center gap-3' },
-            t(Icon, { name: tab.icon, className: `w-5 h-5 ${active ? 'text-white' : 'text-slate-300'}` }),
-            t('div', null,
-              t('div', { className: 'font-semibold text-sm' }, tab.title),
-              t('div', { className: `mt-1 text-xs ${active ? 'text-slate-200' : 'text-slate-400'}` }, tab.subtitle)
-            )
-          )
-        );
-      }
+      const IconComp = Icons[activeModel.icon];
 
-      function renderErrorCard() {
-        return t('div', { className: 'mt-6 rounded-3xl border border-red-500/20 bg-red-500/10 p-5 shadow-lg animate-fadeSlide' },
-          t('div', { className: 'flex items-start gap-3' },
-            t(Icon, { name: 'AlertTriangle', className: 'w-5 h-5 text-red-400 mt-0.5' }),
-            t('div', null,
-              t('p', { className: 'font-semibold text-red-100' }, 'Diagnosis failed'),
-              t('p', { className: 'mt-1 text-sm text-red-100/80 leading-6' }, error)
-            )
-          ),
-          t('button', {
-            type: 'button',
-            onClick: submitDiagnosis,
-            className: 'mt-4 inline-flex items-center justify-center rounded-full bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-400'
-          }, 'Retry')
-        );
-      }
+      return t('div', { className: 'min-h-screen py-10 px-4 sm:px-6', style: { background: 'radial-gradient(circle at top, rgba(13,148,136,0.13), transparent 35%), radial-gradient(circle at bottom right, rgba(56,189,248,0.07), transparent 30%), #0f172a' } },
+        t('div', { className: 'mx-auto max-w-3xl space-y-6' },
 
-      function renderResponse() {
-        if (!response) return null;
-        const diagnosis = response.diagnosis || {};
-        const conditionName = diagnosis.name || diagnosis.condition || 'Clinical diagnosis';
-        const icd10 = diagnosis.icd10 || response.icd10 || '';
-        const medicines = response.medicines || [];
-        const differentials = response.differential_diagnoses || [];
-        const classifier = response.classifier_output || [];
-        const action = getActionBadge(response.action);
-        const critical = response.critical_alert || { flag: false, reasons: [] };
-        const rawConfidence = response.confidence != null ? Number(response.confidence) : Number(diagnosis.confidence || 0);
-        const confidence = rawConfidence <= 1 ? rawConfidence * 100 : rawConfidence;
-        const confidenceColor = confidence > 80 ? 'bg-emerald-400' : confidence >= 60 ? 'bg-amber-400' : 'bg-red-500';
-
-        return t('div', { className: 'space-y-5 mt-6 fade-slide' },
-          critical.flag && t('div', { className: 'rounded-3xl border border-red-500/20 bg-red-500/10 p-5' },
-            t('div', { className: 'flex items-center gap-3' },
-              t(Icon, { name: 'AlertCircle', className: 'w-5 h-5 text-red-300' }),
-              t('div', { className: 'text-sm font-semibold text-red-100' }, 'Critical alert')
-            ),
-            t('div', { className: 'mt-3 text-sm text-red-100/90 space-y-2' },
-              critical.reasons.map((reason, idx) => t('p', { key: idx }, reason))
-            )
-          ),
-          t('div', { className: 'rounded-3xl border border-slate-700/80 bg-slate-900/90 p-6 shadow-sm' },
-            t('div', { className: 'flex flex-col gap-4 md:flex-row md:items-end md:justify-between' },
+          t('div', { className: 'rounded-2xl border border-slate-700/80 bg-slate-950/95 p-6 sm:p-8' },
+            t('div', { className: 'flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between' },
               t('div', null,
-                t('div', { className: 'flex flex-wrap items-center gap-3' },
-                  t('h2', { className: 'text-2xl font-semibold text-white' }, conditionName),
-                  icd10 && t('span', { className: 'rounded-full bg-teal-600/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-teal-200' }, icd10)
-                ),
-                t('div', { className: 'mt-3 flex items-center gap-3 text-sm text-slate-400' },
-                  t('div', null, 'Confidence'),
-                  t('div', { className: 'rounded-full bg-slate-800/80 p-1.5 flex-1' },
-                    t('div', { className: 'h-2 rounded-full bg-slate-800', style: { overflow: 'hidden' } },
-                      t('div', { className: `h-2 rounded-full ${confidenceColor}`, style: { width: `${Math.min(confidence, 100)}%` } })
-                    )
-                  ),
-                  t('span', { className: 'font-medium text-slate-100' }, `${confidence.toFixed(0)}%`)
-                )
+                t('p', { className: 'text-xs uppercase tracking-[0.3em] text-teal-400' }, 'Clinical Decision Support'),
+                t('h1', { className: 'mt-2 text-2xl font-bold text-white sm:text-3xl' }, 'Hospitrax AI Triage'),
+                t('p', { className: 'mt-2 text-sm text-slate-400 max-w-lg' }, 'Select an AI backend, enter patient data, and run a clinical decision support analysis.')
               ),
-              t('div', { className: 'rounded-3xl bg-slate-950/80 px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-300' }, `${activeTab.title} responded in ${responseTime || '0.00'}s`)
-            )
-          ),
-          t('div', { className: 'grid gap-5 xl:grid-cols-2' },
-            t('div', { className: 'rounded-3xl border border-slate-700/80 bg-slate-900/90 p-6 shadow-sm' },
-              t('div', { className: 'flex items-center gap-3 text-sm font-semibold text-slate-100' },
-                t(Icon, { name: 'Pill', className: 'w-5 h-5 text-teal-300' }),
-                t('span', null, 'Recommended Medicines')
-              ),
-              medicines.length === 0
-                ? t('p', { className: 'mt-4 text-sm text-slate-400' }, 'No medicine suggestions available.')
-                : t('div', { className: 'mt-5 space-y-4' },
-                    medicines.map((medicine, index) => t('div', { key: index, className: 'rounded-3xl border border-slate-700/90 bg-slate-950/80 p-4' },
-                      t('div', { className: 'flex items-center justify-between gap-3' },
-                        t('div', null,
-                          t('div', { className: 'text-sm font-semibold text-white' }, medicine.name || 'Unknown medicine'),
-                          t('div', { className: 'mt-1 text-xs text-slate-500' }, medicine.dosage_form || '—')
-                        ),
-                        t('span', { className: 'rounded-full bg-slate-800 px-2.5 py-1 text-[11px] uppercase tracking-[0.16em] text-slate-400' }, formatCitation(medicine.citation))
-                      ),
-                      t('p', { className: 'mt-3 text-sm leading-6 text-slate-300' }, medicine.dose_instruction || 'No dosage details provided.'),
-                      t('div', { className: 'mt-4 flex flex-wrap gap-2' },
-                        t('span', { className: 'rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-200' }, 'Verified')
-                      )
-                    ))
-                  )
-            ),
-            t('div', { className: 'space-y-5' },
-              t('div', { className: 'rounded-3xl border border-slate-700/80 bg-slate-900/90 p-6 shadow-sm' },
-                t('div', { className: 'flex items-center gap-3 text-sm font-semibold text-slate-100' },
-                  t(Icon, { name: 'ListChecks', className: 'w-5 h-5 text-teal-300' }),
-                  t('span', null, 'Differential Diagnoses')
-                ),
-                t('div', { className: 'mt-4 flex flex-wrap gap-2' },
-                  differentials.length === 0
-                    ? t('span', { className: 'rounded-full bg-slate-800 px-3 py-2 text-sm text-slate-400' }, 'No entries available')
-                    : differentials.map((diff, idx) => {
-                        const diffText = diff?.name ? `${diff.name}${diff.icd10 ? ` (${diff.icd10})` : ''}` : String(diff);
-                        return t('span', { key: idx, className: 'rounded-full bg-slate-800/90 px-3 py-2 text-sm text-slate-300' }, diffText);
-                      })
-                )
-              ),
-              t('div', { className: 'rounded-3xl border border-slate-700/80 bg-slate-900/90 p-6 shadow-sm' },
-                t('div', { className: 'flex items-center justify-between gap-3' },
-                  t('div', { className: 'flex items-center gap-3 text-sm font-semibold text-slate-100' },
-                    t(Icon, { name: 'ArrowRightCircle', className: 'w-5 h-5 text-teal-300' }),
-                    t('span', null, 'Action & Refer')
-                  ),
-                  t('span', { className: `rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${action.color}` }, action.label)
-                ),
-                response.refer_to_specialist && t('div', { className: 'mt-4 rounded-3xl bg-amber-500/10 p-4 text-sm text-amber-100' },
-                  t('div', { className: 'font-semibold text-amber-100' }, 'Refer to specialist'),
-                  t('p', { className: 'mt-2 text-slate-200' }, response.refer_reason || 'Referral recommended based on clinical risk factors.')
-                )
-              )
-            )
-          ),
-          t('div', { className: 'rounded-3xl border border-slate-700/80 bg-slate-900/90 p-6 shadow-sm' },
-            t('button', {
-              type: 'button',
-              onClick: () => setClassifierOpen(prev => !prev),
-              className: 'flex w-full items-center justify-between gap-3 text-left text-sm font-semibold text-slate-100'
-            },
-              t('div', { className: 'flex items-center gap-3' },
-                t(Icon, { name: 'Cpu', className: 'w-5 h-5 text-teal-300' }),
-                t('span', null, 'ML Classifier Signal (weak)')
-              ),
-              t(Icon, { name: classifierOpen ? 'ChevronUp' : 'ChevronDown', className: 'w-5 h-5 text-slate-300' })
-            ),
-            classifierOpen && t('div', { className: 'mt-5 space-y-4' },
-              classifier.slice(0, 5).map((item, index) => {
-                const value = Number(item.probability || 0);
-                return t('div', { key: index },
-                  t('div', { className: 'flex items-center justify-between gap-4 text-sm text-slate-300' },
-                    t('span', null, item.label || 'Unknown'),
-                    t('span', null, `${Math.min(100, value * 100).toFixed(0)}%`)
-                  ),
-                  t('div', { className: 'mt-2 h-2 rounded-full bg-slate-800' },
-                    t('div', { className: 'h-2 rounded-full bg-teal-500', style: { width: `${Math.min(100, value * 100)}%` } })
-                  )
-                );
-              })
-            )
-          ),
-          t('div', { className: 'rounded-3xl border border-slate-700/80 bg-slate-900/90 p-6 shadow-sm' },
-            t('div', { className: 'flex items-center gap-3 text-sm font-semibold text-slate-100' },
-              t(Icon, { name: 'FileText', className: 'w-5 h-5 text-teal-300' }),
-              t('span', null, 'Clinical Reasoning')
-            ),
-            t('p', { className: 'mt-4 text-sm leading-7 text-slate-300 italic' }, response.llm_reasoning || 'No reasoning details were returned.' )
-          )
-        );
-      }
-
-      return t('div', { className: 'min-h-screen bg-[radial-gradient(circle_at_top,_rgba(13,148,136,0.16),_transparent_35%),_radial-gradient(circle_at_bottom_right,_rgba(56,189,248,0.08),_transparent_30%)] py-10 px-4 sm:px-6 lg:px-8' },
-        t('div', { className: 'mx-auto max-w-6xl space-y-8' },
-          t('div', { className: 'rounded-[2rem] border border-slate-700/80 bg-slate-950/95 p-8 shadow-2xl shadow-slate-950/40' },
-            t('div', { className: 'flex flex-col gap-4 md:flex-row md:items-end md:justify-between' },
-              t('div', null,
-                t('p', { className: 'text-sm uppercase tracking-[0.3em] text-teal-300/90' }, 'Clinical Decision Support'),
-                t('h1', { className: 'mt-3 text-3xl font-semibold text-white sm:text-4xl' }, 'Pakistani Hospital AI Triage Dashboard'),
-                t('p', { className: 'mt-3 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base' }, 'Run patient data through a dedicated LLM diagnosis backend, compare outputs, and explore recommendations in a modern, high-contrast clinical UI.')
-              ),
-              t('div', { className: 'inline-flex items-center gap-3' },
+              t('div', { className: 'flex items-center gap-2 shrink-0' },
                 t('select', {
                   value: selectedSample,
                   onChange: e => setSelectedSample(Number(e.target.value)),
-                  className: 'field-focus rounded-3xl border border-slate-700 bg-slate-900/95 px-3 py-3 text-sm text-slate-100'
+                  className: 'field-focus rounded-xl border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-slate-100 max-w-[180px]',
                 },
                   SAMPLE_PATIENTS.map((s, i) => t('option', { key: i, value: i }, s.label))
                 ),
                 t('button', {
-                  type: 'button',
-                  onClick: () => loadSample(),
-                  className: 'inline-flex items-center gap-2 rounded-full border border-slate-700/80 bg-slate-900/90 px-4 py-3 text-sm font-medium text-slate-100 transition hover:border-teal-400/60 hover:bg-slate-800'
-                }, t(Icon, { name: 'Sparkles', className: 'w-4 h-4 text-teal-300' }), 'Load Sample Patient')
+                  type: 'button', onClick: loadSample,
+                  className: 'rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-sm font-medium text-slate-100 hover:border-teal-400/60 hover:bg-slate-800 transition whitespace-nowrap'
+                }, 'Load Sample')
               )
             ),
-            t('div', { className: 'mt-8 grid gap-4 md:grid-cols-3' }, tabs.map(renderTab)),
-            t('div', { className: 'mt-8 grid gap-4 sm:grid-cols-3' },
-              t('div', { className: 'sm:col-span-1' },
-                t('label', { className: 'block text-sm font-medium text-slate-300 mb-2' }, 'Age'),
-                t('input', {
-                  type: 'number',
-                  min: 1,
-                  max: 120,
-                  value: form.age,
-                  onChange: e => updateField('age', e.target.value),
-                  className: 'field-focus w-full rounded-3xl border border-slate-700 bg-slate-900/95 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500',
-                  placeholder: '28'
-                }),
-                errors.age && t('p', { className: 'mt-2 text-xs text-rose-300' }, errors.age)
-              ),
-              t('div', { className: 'sm:col-span-1' },
-                t('label', { className: 'block text-sm font-medium text-slate-300 mb-2' }, 'Sex'),
-                t('select', {
-                  value: form.sex,
-                  onChange: e => updateField('sex', e.target.value),
-                  className: 'field-focus w-full rounded-3xl border border-slate-700 bg-slate-900/95 px-4 py-3 text-sm text-slate-100',
-                },
-                  t('option', { value: '' }, 'Select sex'),
-                  t('option', { value: 'Male' }, 'Male'),
-                  t('option', { value: 'Female' }, 'Female')
+
+            // ── Model selection list ──────────────────────────────────────
+            t('div', { className: 'mt-7' },
+              t('p', { className: 'text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 mb-4' }, 'Select AI Backend'),
+              t(ModelList, { activeModel, setActiveModel, customConfig, setCustomConfig })
+            ),
+
+            // ── Patient input form ────────────────────────────────────────
+            t('div', { className: 'mt-8 border-t border-slate-800 pt-7' },
+              t('p', { className: 'text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 mb-5' }, 'Patient Data'),
+
+              t('div', { className: 'grid gap-4 sm:grid-cols-2' },
+                t(Field, { label: 'Age', error: errors.age },
+                  t(Input, { value: form.age, onChange: v => updateField('age', v), placeholder: '28', min: 1, max: 120, error: errors.age })
                 ),
-                errors.sex && t('p', { className: 'mt-2 text-xs text-rose-300' }, errors.sex)
+                t(Field, { label: 'Sex', error: errors.sex },
+                  t(Select, {
+                    value: form.sex, onChange: v => updateField('sex', v), error: errors.sex,
+                    options: [['', 'Select sex'], ['Male', 'Male'], ['Female', 'Female']]
+                  })
+                )
               ),
-              t('div', { className: 'sm:col-span-1' }),
-            ),
-            t('div', { className: 'mt-4' },
-              t('label', { className: 'block text-sm font-medium text-slate-300 mb-2' }, 'Chief Complaint'),
-              t('textarea', {
-                rows: 3,
-                maxLength: 280,
-                value: form.chief_complaint,
-                onChange: e => updateField('chief_complaint', e.target.value),
-                className: 'field-focus w-full rounded-3xl border border-slate-700 bg-slate-900/95 px-4 py-4 text-sm text-slate-100 placeholder:text-slate-500 shadow-inner focus:border-teal-500',
-                placeholder: 'Describe the primary symptoms and clinical context'
-              }),
-              t('div', { className: 'mt-2 flex items-center justify-between text-xs text-slate-500' },
-                t('span', null, 'Required field'),
-                t('span', null, `${form.chief_complaint.length}/280`)
+
+              t('div', { className: 'mt-4' },
+                t(Field, { label: 'Chief Complaint', error: errors.chief_complaint },
+                  t('div', null,
+                    t('textarea', {
+                      rows: 3, maxLength: 280,
+                      value: form.chief_complaint,
+                      onChange: e => updateField('chief_complaint', e.target.value),
+                      className: `field-focus w-full rounded-2xl border ${errors.chief_complaint ? 'border-rose-500/60' : 'border-slate-700'} bg-slate-900/95 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 transition`,
+                      placeholder: 'Describe the primary symptoms and clinical context',
+                    }),
+                    t('div', { className: 'flex justify-between text-xs text-slate-600 mt-1.5' },
+                      t('span', null, errors.chief_complaint || ''),
+                      t('span', null, `${form.chief_complaint.length}/280`)
+                    )
+                  )
+                )
               ),
-              errors.chief_complaint && t('p', { className: 'mt-2 text-xs text-rose-300' }, errors.chief_complaint)
-            ),
-            t('div', { className: 'mt-6 grid gap-4 sm:grid-cols-2' },
-              t('div', null,
-                t('label', { className: 'block text-sm font-medium text-slate-300 mb-2' }, 'BP Systolic (mmHg)'),
-                t('input', {
-                  type: 'number',
-                  min: 50,
-                  max: 300,
-                  value: form.bp_systolic,
-                  onChange: e => updateField('bp_systolic', e.target.value),
-                  className: 'field-focus w-full rounded-3xl border border-slate-700 bg-slate-900/95 px-4 py-3 text-sm text-slate-100',
-                  placeholder: '100'
-                }),
-                errors.bp_systolic && t('p', { className: 'mt-2 text-xs text-rose-300' }, errors.bp_systolic)
+
+              t('div', { className: 'mt-4 grid gap-4 sm:grid-cols-2' },
+                t(Field, { label: 'BP Systolic (mmHg)', error: errors.bp_systolic },
+                  t(Input, { value: form.bp_systolic, onChange: v => updateField('bp_systolic', v), placeholder: '120', min: 50, max: 300, error: errors.bp_systolic })
+                ),
+                t(Field, { label: 'BP Diastolic (mmHg)', error: errors.bp_diastolic },
+                  t(Input, { value: form.bp_diastolic, onChange: v => updateField('bp_diastolic', v), placeholder: '80', min: 30, max: 200, error: errors.bp_diastolic })
+                )
               ),
-              t('div', null,
-                t('label', { className: 'block text-sm font-medium text-slate-300 mb-2' }, 'BP Diastolic (mmHg)'),
-                t('input', {
-                  type: 'number',
-                  min: 30,
-                  max: 200,
-                  value: form.bp_diastolic,
-                  onChange: e => updateField('bp_diastolic', e.target.value),
-                  className: 'field-focus w-full rounded-3xl border border-slate-700 bg-slate-900/95 px-4 py-3 text-sm text-slate-100',
-                  placeholder: '65'
-                }),
-                errors.bp_diastolic && t('p', { className: 'mt-2 text-xs text-rose-300' }, errors.bp_diastolic)
-              )
-            ),
-            t('div', { className: 'mt-6 grid gap-4 sm:grid-cols-2' },
-              t('div', null,
-                t('label', { className: 'block text-sm font-medium text-slate-300 mb-2' }, 'Blood Sugar (mg/dL)'),
-                t('input', {
-                  type: 'number',
-                  min: 20,
-                  max: 600,
-                  value: form.blood_sugar,
-                  onChange: e => updateField('blood_sugar', e.target.value),
-                  className: 'field-focus w-full rounded-3xl border border-slate-700 bg-slate-900/95 px-4 py-3 text-sm text-slate-100',
-                  placeholder: '85'
-                }),
-                errors.blood_sugar && t('p', { className: 'mt-2 text-xs text-rose-300' }, errors.blood_sugar)
+
+              t('div', { className: 'mt-4 grid gap-4 sm:grid-cols-2' },
+                t(Field, { label: 'Blood Sugar (mg/dL)', error: errors.blood_sugar },
+                  t(Input, { value: form.blood_sugar, onChange: v => updateField('blood_sugar', v), placeholder: '95', min: 20, max: 600, error: errors.blood_sugar })
+                ),
+                t(Field, { label: 'Blood Sugar Context' },
+                  t(Select, {
+                    value: form.blood_sugar_context, onChange: v => updateField('blood_sugar_context', v),
+                    options: [['random', 'Random'], ['fasting', 'Fasting'], ['post-meal', 'Post-meal']]
+                  })
+                )
               ),
-              t('div', null,
-                t('label', { className: 'block text-sm font-medium text-slate-300 mb-2' }, 'Blood Sugar Context'),
-                t('select', {
-                  value: form.blood_sugar_context,
-                  onChange: e => updateField('blood_sugar_context', e.target.value),
-                  className: 'field-focus w-full rounded-3xl border border-slate-700 bg-slate-900/95 px-4 py-3 text-sm text-slate-100'
+
+              t('div', { className: 'mt-4 grid gap-4 sm:grid-cols-2' },
+                t(Field, { label: 'Weight (kg)' },
+                  t(Input, { value: form.weight_kg, onChange: v => updateField('weight_kg', v), placeholder: '70', min: 1 })
+                ),
+                t(Field, { label: 'Height (cm)' },
+                  t(Input, { value: form.height_cm, onChange: v => updateField('height_cm', v), placeholder: '170', min: 30 })
+                )
+              ),
+
+              t('div', { className: 'mt-4 grid gap-4 sm:grid-cols-2' },
+                t(Field, { label: 'Temperature (°C)', error: errors.temperature_c },
+                  t(Input, { value: form.temperature_c, onChange: v => updateField('temperature_c', v), placeholder: '37.0', min: 30, max: 45, step: '0.1', error: errors.temperature_c })
+                ),
+                t(Field, { label: 'Pulse (bpm)', error: errors.pulse_bpm },
+                  t(Input, { value: form.pulse_bpm, onChange: v => updateField('pulse_bpm', v), placeholder: '80', min: 20, max: 250, error: errors.pulse_bpm })
+                )
+              ),
+
+              t('div', { className: 'mt-7' },
+                t('button', {
+                  type: 'button',
+                  onClick: submitDiagnosis,
+                  disabled: loading,
+                  className: 'w-full flex items-center justify-center gap-3 rounded-2xl py-4 text-sm font-semibold text-white transition disabled:opacity-60 disabled:cursor-not-allowed',
+                  style: { background: loading ? '#0f766e' : `linear-gradient(135deg, #0d9488, #0369a1)`, boxShadow: loading ? 'none' : '0 4px 24px rgba(13,148,136,0.25)' }
                 },
-                  t('option', { value: 'random' }, 'Random'),
-                  t('option', { value: 'fasting' }, 'Fasting'),
-                  t('option', { value: 'post-meal' }, 'Post-meal')
+                  loading
+                    ? t('span', { className: 'spin inline-block w-5 h-5 rounded-full border-2 border-white/30 border-t-white' })
+                    : t(IconComp, { size: 18, style: { color: activeModel.iconColor } }),
+                  t('span', null, loading ? 'Running diagnosis…' : `Run with ${activeModel.name} →`)
                 )
               )
             ),
-            t('div', { className: 'mt-6 grid gap-4 sm:grid-cols-2' },
-              t('div', null,
-                t('label', { className: 'block text-sm font-medium text-slate-300 mb-2' }, 'Weight (kg)'),
-                t('input', {
-                  type: 'number',
-                  min: 1,
-                  value: form.weight_kg,
-                  onChange: e => updateField('weight_kg', e.target.value),
-                  className: 'field-focus w-full rounded-3xl border border-slate-700 bg-slate-900/95 px-4 py-3 text-sm text-slate-100',
-                  placeholder: '50'
-                })
-              ),
-              t('div', null,
-                t('label', { className: 'block text-sm font-medium text-slate-300 mb-2' }, 'Height (cm)'),
-                t('input', {
-                  type: 'number',
-                  min: 30,
-                  value: form.height_cm,
-                  onChange: e => updateField('height_cm', e.target.value),
-                  className: 'field-focus w-full rounded-3xl border border-slate-700 bg-slate-900/95 px-4 py-3 text-sm text-slate-100',
-                  placeholder: '155'
-                })
-              )
-            ),
-            t('div', { className: 'mt-6 grid gap-4 sm:grid-cols-2' },
-              t('div', null,
-                t('label', { className: 'block text-sm font-medium text-slate-300 mb-2' }, 'Temperature (°C)'),
-                t('input', {
-                  type: 'number',
-                  step: '0.1',
-                  min: 30,
-                  max: 45,
-                  value: form.temperature_c,
-                  onChange: e => updateField('temperature_c', e.target.value),
-                  className: 'field-focus w-full rounded-3xl border border-slate-700 bg-slate-900/95 px-4 py-3 text-sm text-slate-100',
-                  placeholder: '36.8'
-                }),
-                errors.temperature_c && t('p', { className: 'mt-2 text-xs text-rose-300' }, errors.temperature_c)
-              ),
-              t('div', null,
-                t('label', { className: 'block text-sm font-medium text-slate-300 mb-2' }, 'Pulse (bpm)'),
-                t('input', {
-                  type: 'number',
-                  min: 20,
-                  max: 250,
-                  value: form.pulse_bpm,
-                  onChange: e => updateField('pulse_bpm', e.target.value),
-                  className: 'field-focus w-full rounded-3xl border border-slate-700 bg-slate-900/95 px-4 py-3 text-sm text-slate-100',
-                  placeholder: '105'
-                }),
-                errors.pulse_bpm && t('p', { className: 'mt-2 text-xs text-rose-300' }, errors.pulse_bpm)
-              )
-            ),
-            t('div', { className: 'mt-8' },
-              t('button', {
-                type: 'button',
-                onClick: submitDiagnosis,
-                disabled: loading,
-                className: 'inline-flex w-full items-center justify-center gap-3 rounded-3xl bg-teal-500 px-6 py-4 text-sm font-semibold text-white shadow-xl shadow-teal-500/15 transition hover:bg-teal-400 disabled:cursor-not-allowed disabled:opacity-70'
-              },
-                loading && t('span', { className: 'inline-flex h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white' }),
-                t('span', null, `Run with ${activeTab.label} →`)
-              )
-            ),
-            error && renderErrorCard(),
-            renderResponse()
+
+            t(ResultPanel, { response, responseTime, activeModel, error, onRetry: submitDiagnosis })
           )
         )
       );
